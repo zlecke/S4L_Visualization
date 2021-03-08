@@ -44,7 +44,7 @@ import math
 from mpl_figure_editor import MPLFigureEditor
 from q_range_editor import QRangeEditor
 
-from preferences import default_csf_model,defaultDataPath
+from preferences import default_csf_model
 
 import vtk
 import pickle
@@ -53,8 +53,6 @@ vtk.vtkObject.GlobalWarningDisplayOff()
 
 scale_factor = 0.001
 swap_xy = True
-# default_csf_model = r'C:\Users\z362221\392 full cord with implanted paddle models\CSF.vtk'
-# defaultDataPath = r'C:\Users\z362221\392 s4l project\ExportedJFieldData.txt'
 
 class SVHandler(Handler):
     
