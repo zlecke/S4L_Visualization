@@ -981,6 +981,7 @@ class MainWindow(HasTraits):
 
     @observe('open_file_button', post_init=True)
     def open_data_file(self, info):
+        GUI.set_busy(True)
         if not self.field_initialized:
             self.data_dir, _ = QFileDialog.getOpenFileName(None, "Open Data File", os.getcwd(),
                                                            'Data Files (*.txt *.csv *.mat)')
@@ -1047,6 +1048,8 @@ class MainWindow(HasTraits):
         self.plotter.sync_trait('show_full_model', self)
         self.plotter.sync_trait('log_scale', self)
         self.plotter.sync_trait('csf_model', self)
+
+        GUI.set_busy(False)
 
 
 if __name__ == '__main__':
