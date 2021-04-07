@@ -14,6 +14,8 @@ from traitsui.undo import UndoItem
 
 from tvtk.pyface.scene_editor import SceneEditor
 
+from pyface.api import FileDialog, OK, GUI
+
 from PySide2.QtWidgets import QFileDialog
 
 from mayavi.tools.mlab_scene_model import MlabSceneModel
@@ -608,7 +610,7 @@ class MainWindow(HasTraits):
 
     tmp_action = Action(name="Action_Name")
 
-    open_file_action = Action(name="Open File", action='open_data_file')
+    open_file_action = Action(name="Open File", action='open_new_file')
     open_file_button = Button(label='Open data file', style='button')
 
     open_recent_button = Button(label="Restore previous session", style='button', visible_when='has_state')
@@ -940,6 +942,42 @@ class MainWindow(HasTraits):
         print('saving slice')
         out_name, _ = QFileDialog.getSaveFileName(None, tr('Save F:xile'), os.path.join(os.getcwd(), 'slice.png'),
                                                   'Images (*.png *.jpg)')
+
+    def open_new_file(self):
+        dialog = FileDialog(action='open', wildcard=FileDialog.create_wildcard('Data Files', ['*.mat']))
+        result = dialog.open()
+
+        if result == OK:
+            self.data_dir = dialog.path
+        else:
+            return None
+
+        GUI.set_busy(True)
+
+        self.initialize_field(self.data_dir)
+
+        self.plotter.grid_x = self.masked_gr_x
+        self.plotter.grid_y = self.masked_gr_y
+        self.plotter.grid_z = self.masked_gr_z
+        self.plotter.grid_data = self.masked_grid_data
+        self.plotter.coord_map = self.coord_map
+        self.plotter.coord = self.coord
+        self.plotter.low = self.low
+        self.plotter.high = self.high
+
+        self.line_panel.grid_x = self.x_vals
+        self.line_panel.grid_y = self.y_vals
+        self.line_panel.grid_z = self.z_vals
+        self.line_panel.grid_data = self.dataArr
+
+        self.slice_panel.coord_index = self.coord
+        self.slice_panel.index_low = self.low
+        self.slice_panel.index_high = self.high
+        self.slice_panel.coord_map = self.coord_map
+        self.slice_panel.low_label = self.low_label
+        self.slice_panel.high_label = self.high_label
+
+        GUI.set_busy(False)
 
     @observe('open_file_button', post_init=True)
     def open_data_file(self, info):
