@@ -984,7 +984,7 @@ class MainWindow(HasTraits):
         GUI.set_busy(True)
         if not self.field_initialized:
             self.data_dir, _ = QFileDialog.getOpenFileName(None, "Open Data File", os.getcwd(),
-                                                           'Data Files (*.txt *.csv *.mat)')
+                                                           'Data Files (*.mat)')
             self.initialize_field(self.data_dir)
 
         self.plotter = Plotter(
