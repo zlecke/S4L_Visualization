@@ -1,0 +1,10 @@
+matplotlib
+traits>=6.2.0
+traitsui>=7.1.1
+pyface>=7.3.0
+PySide2
+mayavi
+numpy
+pandas
+scipy
+vtk

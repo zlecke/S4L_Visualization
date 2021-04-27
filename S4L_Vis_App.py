@@ -4,7 +4,7 @@ import matplotlib
 matplotlib.use('Qt5Agg')
 from matplotlib.figure import Figure
 
-from traits.api import Any, Instance, Int, HasTraits, Enum, Str, observe, Button, File, Bool
+from traits.api import Any, Instance, Int, HasTraits, Enum, Str, observe, Button, File, Bool, ListStr
 from traits.trait_numeric import Array
 
 from traitsui.api import View, Item, Group, HSplit, Action, Menu, MenuBar, EnumEditor, Handler, ArrayEditor
@@ -55,30 +55,30 @@ class SVHandler(Handler):
     def close(self, info, is_ok):
         try:
             out_data = {
-                    'plane_type':       info.object.plotter.plane_type,
-                    'low_point':        info.object.plotter.line_low_point,
-                    'high_point':       info.object.plotter.line_high_point,
-                    'origin':           info.object.plotter.origin,
-                    'normal':           info.object.plotter.normal,
-                    'csf_model':        info.object.csf_model,
-                    'show_model':       info.object.show_full_model,
-                    'log_scale':        info.object.log_scale,
-                    'data_dir':         info.object.data_dir,
-                    'coord':            info.object.plotter.coord,
-                    # 'scene'     :info.object.scene,
-                    'masked_gr_x':      info.object.masked_gr_x,
-                    'masked_gr_y':      info.object.masked_gr_y,
-                    'masked_gr_z':      info.object.masked_gr_z,
-                    'masked_grid_data': info.object.masked_grid_data,
-                    'coord_map':        info.object.coord_map,
-                    'low':              info.object.low,
-                    'high':             info.object.high,
-                    'x_vals':           info.object.x_vals,
-                    'y_vals':           info.object.y_vals,
-                    'z_vals':           info.object.z_vals,
-                    'dataArr':          info.object.dataArr,
-                    'low_label':        info.object.low_label,
-                    'high_label':       info.object.high_label,
+                'plane_type': info.object.plotter.plane_type,
+                'low_point': info.object.plotter.line_low_point,
+                'high_point': info.object.plotter.line_high_point,
+                'origin': info.object.plotter.origin,
+                'normal': info.object.plotter.normal,
+                'csf_model': info.object.csf_model,
+                'show_model': info.object.show_full_model,
+                'log_scale': info.object.log_scale,
+                'data_dir': info.object.data_dir,
+                'coord': info.object.plotter.coord,
+                # 'scene'     :info.object.scene,
+                'masked_gr_x': info.object.masked_gr_x,
+                'masked_gr_y': info.object.masked_gr_y,
+                'masked_gr_z': info.object.masked_gr_z,
+                'masked_grid_data': info.object.masked_grid_data,
+                'coord_map': info.object.coord_map,
+                'low': info.object.low,
+                'high': info.object.high,
+                'x_vals': info.object.x_vals,
+                'y_vals': info.object.y_vals,
+                'z_vals': info.object.z_vals,
+                'dataArr': info.object.dataArr,
+                'low_label': info.object.low_label,
+                'high_label': info.object.high_label,
 
             }
         except AttributeError:
@@ -210,24 +210,6 @@ class Plotter(HasTraits):
         self.full_csf_surface.visible = self.show_full_model
 
         self.scene.mlab.draw()
-
-    def rotate_x(self, angle):
-        return np.array([[1, 0, 0, 0],
-                         [0, np.cos(angle), -1 * np.sin(angle), 0],
-                         [0, np.sin(angle), np.cos(angle), 0],
-                         [0, 0, 0, 1]])
-
-    def rotate_y(self, angle):
-        return np.array([[np.cos(angle), 0, -1 * np.sin(angle), 0],
-                         [0, 1, 0, 0],
-                         [np.sin(angle), 0, np.cos(angle), 0],
-                         [0, 0, 0, 1]])
-
-    def rotate_z(self, angle):
-        return np.array([[1, 0, 0, 0],
-                         [0, np.cos(angle), -1 * np.sin(angle), 0],
-                         [0, np.sin(angle), np.cos(angle), 0],
-                         [0, 0, 0, 1]])
 
     @observe('csf_model', post_init=True)
     def change_cord_model(self, event):
@@ -367,7 +349,7 @@ class Plotter(HasTraits):
                 self.surf.parent.scalar_lut_manager.shadow = True
                 self.surf.parent.scalar_lut_manager.use_default_range = False
                 self.surf.parent.scalar_lut_manager.data_range = np.array(
-                        [np.nanmin(self.grid_data), np.nanmax(self.grid_data)])
+                    [np.nanmin(self.grid_data), np.nanmax(self.grid_data)])
 
             coord = self.coord_map[self.coord]
 
@@ -479,13 +461,13 @@ class LinePanel(HasTraits):
 
     def default_traits_view(self):
         return View(Group(
-                Item('line_figure', editor=MPLFigureEditor(), show_label=False),
-                Group(
-                        Item('low_point', label='Point 1', editor=ArrayEditor(width=-60)),
-                        Item('high_point', label='Point 2', editor=ArrayEditor(width=-60)),
-                ),
+            Item('line_figure', editor=MPLFigureEditor(), show_label=False),
+            Group(
+                Item('low_point', label='Point 1', editor=ArrayEditor(width=-60)),
+                Item('high_point', label='Point 2', editor=ArrayEditor(width=-60)),
+            ),
         ),
-                handler=LeftHandler()
+            handler=LeftHandler()
         )
 
 
@@ -521,39 +503,39 @@ class SlicePanel(HasTraits):
 
     def default_traits_view(self):
         return View(Group(
-                Item('figure', editor=MPLFigureEditor(), show_label=False),
-                Group(
-                        Item(
-                                'coord_index',
-                                label=self.coord_label,
-                                editor=QRangeEditor(
-                                        low_name='index_low',
-                                        high_name='index_high',
-                                        low_label_name='low_label',
-                                        high_label_name='high_label',
-                                        map_to_values_name='coord_map',
-                                        mode='slider',
-                                        is_float=False, ),
-                                padding=15,
-                        ),
+            Item('figure', editor=MPLFigureEditor(), show_label=False),
+            Group(
+                Item(
+                    'coord_index',
+                    label=self.coord_label,
+                    editor=QRangeEditor(
+                        low_name='index_low',
+                        high_name='index_high',
+                        low_label_name='low_label',
+                        high_label_name='high_label',
+                        map_to_values_name='coord_map',
+                        mode='slider',
+                        is_float=False, ),
+                    padding=15,
                 ),
-                Item('plane_type',
-                     editor=EnumEditor(
-                             values={
-                                     # 'Normal to X':'1:Normal to X',
-                                     # 'Normal to Y':'2:Normal to Y',
-                                     'Normal to Z':     '3:Normal to Z',
-                                     'Arbitrary Plane': '4:Arbitrary Plane',
-                             },
-                             format_func=str,
-                             cols=4
-                     ),
-                     style='custom',
-                     show_label=False),
-                Group(
-                        Item('normal', editor=ArrayEditor(width=-60)),
-                        Item('origin', editor=ArrayEditor(width=-60)),
-                        visible_when='plane_type == "Arbitrary Plane"')))
+            ),
+            Item('plane_type',
+                 editor=EnumEditor(
+                     values={
+                         'Normal to X':'1:Normal to X',
+                         # 'Normal to Y':'2:Normal to Y',
+                         'Normal to Z': '3:Normal to Z',
+                         'Arbitrary Plane': '4:Arbitrary Plane',
+                     },
+                     format_func=str,
+                     cols=4
+                 ),
+                 style='custom',
+                 show_label=False),
+            Group(
+                Item('normal', editor=ArrayEditor(width=-60)),
+                Item('origin', editor=ArrayEditor(width=-60)),
+                visible_when='plane_type == "Arbitrary Plane"')))
 
 
 class LeftPanel(HasTraits):
@@ -562,11 +544,11 @@ class LeftPanel(HasTraits):
 
     def default_traits_view(self):
         return View(Group(
-                Item('slice_panel', dock='tab', style='custom', show_label=False),  #,width=1000,height=800,),
-                Item('line_panel', dock='tab', style='custom', show_label=False),
-                layout='tabbed',
+            Item('slice_panel', dock='tab', style='custom', show_label=False),  # ,width=1000,height=800,),
+            Item('line_panel', dock='tab', style='custom', show_label=False),
+            layout='tabbed',
         ),
-                handler=LeftHandler()
+            handler=LeftHandler()
         )
 
 
@@ -586,9 +568,9 @@ class RightPanel(HasTraits):
     plot_3d = Instance(MlabSceneModel)
 
     view = View(Group(
-            Item('plot_3d',
-                 show_label=False,
-                 editor=SceneEditor(scene_class=MayaviScene)),
+        Item('plot_3d',
+             show_label=False,
+             editor=SceneEditor(scene_class=MayaviScene)),
     ))
 
 
@@ -644,6 +626,9 @@ class MainWindow(HasTraits):
     has_state = Bool(False)
 
     field_initialized = Bool(False)
+
+    available_fields = ListStr()
+    current_field = Str()
 
     def toggle_full_model(self, info):
         info.ui.do_undoable(self._toggle_full_model, info)
@@ -701,7 +686,11 @@ class MainWindow(HasTraits):
             self.y_vals = np.array([(g_y[i] + g_y[i + 1]) / 2 for i in range(g_y.size - 1)])
             self.z_vals = np.array([(g_z[i] + g_z[i + 1]) / 2 for i in range(g_z.size - 1)])
 
-            jx, jy, jz = abs(mat_data['J_x_y_z_f0_Snapshot0']).T
+            self.available_fields = [x for x in mat_data.keys() if 'Snapshot' in x]
+            if self.current_field is None or self.current_field == '':
+                self.current_field = [x for x in self.available_fields if 'J' in x][0]
+
+            jx, jy, jz = abs(mat_data[self.current_field]).T
 
             self.dataArr = np.sqrt(jx ** 2 + jy ** 2 + jz ** 2).reshape(self.x_vals.size, self.y_vals.size,
                                                                         self.z_vals.size)
@@ -725,8 +714,8 @@ class MainWindow(HasTraits):
                                           self.z_min:self.z_max:len(self.z_vals) * 1j]
 
         points = np.array(
-                [[self.gr_x[i, j, k], self.gr_y[i, j, k], self.gr_z[i, j, k]] for i in range(self.gr_x.shape[0]) for j
-                 in range(self.gr_x.shape[1]) for k in range(self.gr_x.shape[2])])
+            [[self.gr_x[i, j, k], self.gr_y[i, j, k], self.gr_z[i, j, k]] for i in range(self.gr_x.shape[0]) for j
+             in range(self.gr_x.shape[1]) for k in range(self.gr_x.shape[2])])
 
         interp_func = RegularGridInterpolator((self.x_vals, self.y_vals, self.z_vals), self.dataArr)
         self.grid_data = interp_func(points).reshape(self.dataArr.shape)
@@ -768,65 +757,70 @@ class MainWindow(HasTraits):
 
     def default_traits_view(self):
         return QtView(Group(
-                Group(
-                        Item(
-                                'prog_title',
-                                show_label=False,
-                                style='readonly',
-                                style_sheet='*{qproperty-alignment:AlignHCenter; font-size: 20px; font-weight: bold}',
-                                width=0.9
-                        ),
-                        Group(
-                                Item(
-                                        'open_file_button',
-                                        show_label=False,
-                                        padding=15
-                                ),
-                                Item(
-                                        'open_recent_button',
-                                        show_label=False,
-                                        padding=15,
-                                        visible_when='has_state',
-                                ),
-                                orientation='horizontal',
-                                show_labels=False
-                        ),
-                        visible_when='data_dir == ""'),
-                HSplit(
-                        Item('left_panel', dock='vertical', style='custom', width=1000, height=800),
-                        Item('right_panel', style='custom', width=500, height=800),
-                        show_labels=False,
-                        visible_when='data_dir != ""',
+            Group(
+                Item(
+                    'prog_title',
+                    show_label=False,
+                    style='readonly',
+                    style_sheet='*{qproperty-alignment:AlignHCenter; font-size: 20px; font-weight: bold}',
+                    width=0.9
                 ),
+                Group(
+                    Item(
+                        'open_file_button',
+                        show_label=False,
+                        padding=15
+                    ),
+                    Item(
+                        'open_recent_button',
+                        show_label=False,
+                        padding=15,
+                        visible_when='has_state',
+                    ),
+                    orientation='horizontal',
+                    show_labels=False
+                ),
+                visible_when='data_dir == ""'),
+            HSplit(
+                Item('left_panel', dock='vertical', style='custom', width=1000, height=800),
+                Item('right_panel', style='custom', width=500, height=800),
+                show_labels=False,
+                visible_when='data_dir != ""',
+            ),
         ),
-                resizable=True,
-                title=self.prog_title,
-                buttons=menu.NoButtons,
-                handler=SVHandler(),
-                x=0.1,
-                y=0.1,
-                # statusbar = ['data_dir','csf_model'],
-                menubar=MenuBar(
-                        Menu(
-                                self.open_file_action,
-                                Menu(
-                                        Action(name="Export Slice", action="export_slice",
-                                               enabled_when='data_dir != ""'),
-                                        Action(name="Export Line", action="export_line", enabled_when='data_dir != ""'),
-                                        name='&Export'
-                                ),
-                                name='&File'
-                        ),
-                        Menu(
-                                menu.UndoAction,
-                                menu.RedoAction,
-                                self.new_model_action,
-                                self.full_model_action,
-                                Action(name='Log scale', action='change_scale', enabled_when='data_dir != ""',
-                                       checked_when='log_scale', style='toggle'),
-                                name='&Edit'
-                        )
+            resizable=True,
+            title=self.prog_title,
+            buttons=menu.NoButtons,
+            handler=SVHandler(),
+            x=0.1,
+            y=0.1,
+            # statusbar = ['data_dir','csf_model'],
+            menubar=MenuBar(
+                Menu(
+                    self.open_file_action,
+                    Menu(
+                        Action(name="Export Slice", action="export_slice",
+                               enabled_when='data_dir != ""'),
+                        Action(name="Export Line", action="export_line", enabled_when='data_dir != ""'),
+                        name='&Export'
+                    ),
+                    name='&File'
+                ),
+                Menu(
+                    menu.UndoAction,
+                    menu.RedoAction,
+                    self.new_model_action,
+                    self.full_model_action,
+                    Action(name='Log scale', action='change_scale', enabled_when='data_dir != ""',
+                           checked_when='log_scale', style='toggle'),
+                    # ActionGroup((Action(name=x.split('Snapshot')[0].replace('_', ' '))),
+                    #             name='Select Field',
+                    #             enabled_when='len(available_fields) > 0'
+                    #             ),
+
+                    name='&Edit'
                 )
+            )
         )
 
     def change_scale(self, info):
@@ -940,7 +934,7 @@ class MainWindow(HasTraits):
 
     def save_slice(self, info):
         print('saving slice')
-        out_name, _ = QFileDialog.getSaveFileName(None, tr('Save F:xile'), os.path.join(os.getcwd(), 'slice.png'),
+        out_name, _ = QFileDialog.getSaveFileName(None, 'Save F:xile', os.path.join(os.getcwd(), 'slice.png'),
                                                   'Images (*.png *.jpg)')
 
     def open_new_file(self):
@@ -988,51 +982,51 @@ class MainWindow(HasTraits):
             self.initialize_field(self.data_dir)
 
         self.plotter = Plotter(
-                scene=self.scene,
-                csf_model=self.csf_model,
-                grid_x=self.masked_gr_x,
-                grid_y=self.masked_gr_y,
-                grid_z=self.masked_gr_z,
-                grid_data=self.masked_grid_data,
-                coord_map=self.coord_map,
-                coord=self.coord,
-                low=self.low,
-                high=self.high,
-                log_scale=self.log_scale,
+            scene=self.scene,
+            csf_model=self.csf_model,
+            grid_x=self.masked_gr_x,
+            grid_y=self.masked_gr_y,
+            grid_z=self.masked_gr_z,
+            grid_data=self.masked_grid_data,
+            coord_map=self.coord_map,
+            coord=self.coord,
+            low=self.low,
+            high=self.high,
+            log_scale=self.log_scale,
         )
 
         self.plotter.create_plot()
 
         self.line_panel = LinePanel(
-                low_point=self.plotter.line_low_point,
-                high_point=self.plotter.line_high_point,
-                grid_x=self.x_vals,
-                grid_y=self.y_vals,
-                grid_z=self.z_vals,
-                grid_data=self.dataArr
+            low_point=self.plotter.line_low_point,
+            high_point=self.plotter.line_high_point,
+            grid_x=self.x_vals,
+            grid_y=self.y_vals,
+            grid_z=self.z_vals,
+            grid_data=self.dataArr
         )
 
         self.line_panel.create_line_figure()
 
         self.slice_panel = SlicePanel(
-                figure=self.plotter.figure,
-                coord_index=self.coord,
-                index_low=self.low,
-                index_high=self.high,
-                coord_map=self.coord_map,
-                low_label=self.low_label,
-                high_label=self.high_label
+            figure=self.plotter.figure,
+            coord_index=self.coord,
+            index_low=self.low,
+            index_high=self.high,
+            coord_map=self.coord_map,
+            low_label=self.low_label,
+            high_label=self.high_label
         )
 
         self.left_panel = LeftPanel(
-                line_panel=self.line_panel,
-                slice_panel=self.slice_panel
+            line_panel=self.line_panel,
+            slice_panel=self.slice_panel
         )
 
         self.right_panel = RightPanel(
-                plot_3d=self.scene,
-                normal=self.plotter.normal,
-                origin=self.plotter.origin
+            plot_3d=self.scene,
+            normal=self.plotter.normal,
+            origin=self.plotter.origin
         )
 
         self.plotter.sync_trait('figure', self.slice_panel)
