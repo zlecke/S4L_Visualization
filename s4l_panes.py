@@ -10,7 +10,7 @@ from traitsui.editors import InstanceEditor
 
 import mat_test
 from q_range_editor import QRangeEditor
-from s4l_new_models import EMFields
+from s4l_models import EMFields
 from util import ArrayClass
 
 

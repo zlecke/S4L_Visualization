@@ -31,7 +31,7 @@ from traits.trait_types import Bool
 
 from s4l_groups import FieldSelectionGroup
 from s4l_panes import PlaneAttributes, LineAttributes
-from s4l_new_models import EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
+from s4l_models import EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
 
 
 class S4LVisualizationTask(Task):
