@@ -238,8 +238,6 @@ class S4LVisualizationTask(Task):
         self.mayavi_scene.sync_trait('origin', self.plane_attributes_pane)
         self.line_attributes_pane.sync_trait('points', self.mayavi_scene, mutual=False)
 
-        self.change_cord_model()
-
         self.mayavi_scene.create_plot()
         editor = self.mayavi_scene
 
