@@ -264,7 +264,6 @@ class S4LVisualizationTask(Task):
         self.editor_area.activate_editor(self.line_figure)
         self.editor_area.active_tabwidget.setTabsClosable(False)
         self.activated()
-        # self.editor_area.control.split()
 
         self.mayavi_scene.disable_widgets()
 
