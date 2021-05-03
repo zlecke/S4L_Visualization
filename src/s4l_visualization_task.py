@@ -94,7 +94,6 @@ class S4LVisualizationTask(Task):
             ),
             toggle_model_action,
             toggle_scale_action,
-            TaskAction(name='Reset 3D View', method='reset_camera', enabled_name='model_initialized'),
             id="View",
             name="&View"
         ),
@@ -237,7 +236,7 @@ class S4LVisualizationTask(Task):
 
         self.mayavi_scene.sync_trait('normal', self.plane_attributes_pane)
         self.mayavi_scene.sync_trait('origin', self.plane_attributes_pane)
-        self.mayavi_scene.sync_trait('points', self.line_attributes_pane)
+        self.line_attributes_pane.sync_trait('points', self.mayavi_scene, mutual=False)
 
         self.change_cord_model()
 

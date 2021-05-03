@@ -1,6 +1,8 @@
 import copy
 
 import matplotlib
+matplotlib.use('Qt5Agg')
+# matplotlib.rcParams['backend.qt5'] = 'PySide2'
 
 # We want matplotlib to use a QT backend
 import pandas as pd
@@ -10,7 +12,6 @@ from matplotlib.colors import LogNorm, Normalize
 from mpl_figure_editor import MPLFigureEditor
 from util import ArrayClass, scale_factor, scalar_fields, arg_find_nearest
 
-matplotlib.use('Qt5Agg')
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -152,7 +153,9 @@ class Mayavi3DScene(Editor):
 
     data_set_clipper = Instance(DataSetClipper)
 
-    points = List(Array)
+    points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])), ArrayClass(value=np.array([0, 0, 1]))])
+    line = Instance(Surface)
+    line_points = Any()
 
     src = Instance(ArraySource)
     cut = Instance(CutPlane)
@@ -215,13 +218,12 @@ class Mayavi3DScene(Editor):
             self.csf_model_reader.initialize(self.csf_model)
 
     @observe('scene.activated')
-    def initialize_camera(self, info):
-        self.scene.scene.camera.position = [195, 200, 200]
-        self.scene.scene.camera.focal_point = [-5.0, -0.5, -0.3]
-        self.scene.scene.camera.view_angle = 30.0
-        self.scene.scene.camera.view_up = [0.0, 0.0, 1.0]
-        self.scene.scene.camera.clipping_range = [215, 500]
-        self.scene.scene.camera.compute_view_plane_normal()
+    def initialize_camera(self, info=None):
+        if self.csf_surface is not None:
+            self.scene.engine.current_object = self.csf_surface
+        self.scene.mlab.view(azimuth=-35, elevation=75)
+
+        self.scene.mlab.draw()
 
     def create_plot(self):
         normal = self.normal
@@ -275,6 +277,60 @@ class Mayavi3DScene(Editor):
         self.surf.parent.scalar_lut_manager.lut.nan_color = np.array([0, 0, 0, 0])
 
         self.scene.mlab.draw()
+
+    @observe(ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True), post_init=True)
+    def draw_line(self, event):
+        if None in event.new and len(event.old) == len(event.new) and None not in event.old:
+            self.points = event.old
+            return
+        points = np.array([val.value if val is not None else np.array([0, 0, 0]) for val in self.points])
+
+        # x = []
+        # y = []
+        # z = []
+        # s = []
+        # connections = []
+        #
+        # index = 0
+        # last_point = points[0]
+        #
+        # for point in points[1:]:
+        #     x.append(np.linspace(last_point[0], point[0], 300))
+        #     y.append(np.linspace(last_point[1], point[1], 300))
+        #     z.append(np.linspace(last_point[2], point[2], 300))
+        #     s.append(np.ones(300))
+        #     connections.append(np.vstack([np.arange(index, index + 300 - 1.5),
+        #                                   np.arange(index + 1, index + 300 - 0.5)]).T)
+        #     index += 300
+        #     last_point = point
+        #
+        # x = np.hstack(x)
+        # y = np.hstack(y)
+        # z = np.hstack(z)
+        # s = np.hstack(s)
+        # connections = np.vstack(connections)
+
+        x = []
+        y = []
+        z = []
+
+        for point in points:
+            x.append(point[0])
+            y.append(point[1])
+            z.append(point[2])
+
+        if not hasattr(self.line, 'mlab_source'):
+            self.line = self.scene.mlab.plot3d(x, y, z, tube_radius=0.2, color=(1, 0, 0), figure=self.scene.mayavi_scene)
+            # self.line_points = self.scene.mlab.pipeline.scalar_scatter(x, y, z, s)
+            # self.line = self.scene.mlab.pipeline.surface(self.line_points, line_width=1, opacity=0.5)
+        else:
+            self.line.mlab_source.reset(x=x, y=y, z=z)
+
+        # self.line_points.mlab_source.dataset.lines = connections
+        # self.line_points.update()
+
+        self.scene.mlab.draw()
+
 
     def disable_widgets(self):
         if self.data_set_clipper.widget.widget.enabled:

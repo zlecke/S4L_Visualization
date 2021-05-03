@@ -202,6 +202,12 @@ class LineAttributes(CustomDockPane):
 
             self.points = tmp_points
 
+    @observe('points.items', post_init=True)
+    def _new_point_added(self, event):
+        points = [val if val is not None else ArrayClass(value=np.array([0, 0, 0])) for val in self.points]
+        if points != self.points:
+            self.points = points
+
     view = View(
         Item('sort_points_button', show_label=False),
         Item('points', editor=ListEditor(editor=InstanceEditor(), scrollable=False, style='custom'), show_label=False)

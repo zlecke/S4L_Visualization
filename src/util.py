@@ -16,6 +16,9 @@ class ArrayClass(HasStrictTraits):
         elif len(args) > 0:
             self.value = args[0]
 
+    def _value_default(self):
+        return Array(value=np.array([0, 0, 0]), dtype=np.float64)
+
     def default_traits_view(self):
         return View(Item('value', editor=ArrayEditor(width=-60, auto_set=False, enter_set=True), show_label=False))
 
