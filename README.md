@@ -27,5 +27,5 @@ Displays field data from Sim4Life simulations of spinal cord electrostimulation.
     ```
 3. Run the program with the following command:
     ```
-    python S4L_Vis_App.py
+    python run.py
     ```
