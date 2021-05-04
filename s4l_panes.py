@@ -1,14 +1,11 @@
 import numpy as np
 from numpy import ma
-
 from pyface.tasks.api import TraitsDockPane
 from pyface.ui.qt4.tasks.dock_pane import INVERSE_AREA_MAP
-from traits.api import Str, Int, Enum, Array, observe, List, Property, Instance, Button
-from traits.observation import api as ob
+from traits.api import Str, Int, Enum, Array, observe, List, Instance, Button
 from traitsui.api import View, Item, Group, EnumEditor, ArrayEditor, ListEditor
 from traitsui.editors import InstanceEditor
 
-import mat_test
 from q_range_editor import QRangeEditor
 from s4l_models import EMFields
 from util import ArrayClass
