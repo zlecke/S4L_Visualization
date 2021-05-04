@@ -456,6 +456,7 @@ class SliceFigureModel(Editor):
         if canvas is not None:
             canvas.draw()
 
+    @observe('draw_cross', post_init=True)
     @observe(ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True))
     def update_line_cross(self, event=None):
         if not self.draw_cross and self.line_cross is not None:
@@ -482,7 +483,7 @@ class SliceFigureModel(Editor):
                 self.line_cross[0].set_data([x], [y])
                 self.line_cross[0].set_marker('x')
 
-            self.figure.canvas.draw()
+        self.figure.canvas.draw()
 
 
 class LineFigureModel(Editor):

@@ -74,6 +74,12 @@ class S4LVisualizationTask(Task):
                                      checked=True,
                                      enabled_name='model_initialized')
 
+    toggle_line_cross_action = TaskAction(name='Line Cross Marker',
+                                          method='toggle_line_cross_marker',
+                                          style='toggle',
+                                          checked=True,
+                                          enabled_name='model_initialized')
+
     menu_bar = SMenuBar(
         SMenu(
             TaskAction(name="Open...", method="open", accelerator="Ctrl+O"),
@@ -94,6 +100,7 @@ class S4LVisualizationTask(Task):
             ),
             toggle_model_action,
             toggle_scale_action,
+            toggle_line_cross_action,
             id="View",
             name="&View"
         ),
@@ -194,6 +201,9 @@ class S4LVisualizationTask(Task):
     def toggle_log_scale(self):
         self.mayavi_scene.log_scale = not self.mayavi_scene.log_scale
         self.slice_figure.log_scale = not self.slice_figure.log_scale
+
+    def toggle_line_cross_marker(self):
+        self.slice_figure.draw_cross = not self.slice_figure.draw_cross
 
     def change_cord_model(self):
         dialog = FileDialog(
