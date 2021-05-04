@@ -18,7 +18,8 @@ import numpy as np
 from pyface.tasks.api import Editor
 from scipy.interpolate import RegularGridInterpolator
 
-from traits.api import HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button
+from traits.api import (HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
+                        DelegatesTo)
 import traits.observation.api as ob
 
 from traitsui.api import View, Item, Group, Spring
@@ -337,7 +338,10 @@ class SliceFigureModel(Editor):
     norm = Any()
     pcm = Any()
     clb = Any()
-    # line_cross = Any()
+
+    draw_cross = Bool(True)
+    points = DelegatesTo('mayavi_scene')
+    line_cross = Any()
 
     def default_traits_view(self):
         return View(
@@ -401,7 +405,10 @@ class SliceFigureModel(Editor):
 
         self.pcm = ax.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap, norm=self.norm)
 
-        # self.line_cross = ax.plot([0], [0], 'rx')
+        if self.draw_cross:
+            self.line_cross = ax.plot([0], [0], 'rx')
+        else:
+            self.line_cross = ax.plot([0], [0], '')
 
         ax.set_ylim(bottom=np.nanmin(self.fields_model.masked_gr_y[0, :, 0]) - 2,
                     top=np.nanmax(self.fields_model.masked_gr_y[0, :, 0]) + 2)
@@ -440,12 +447,42 @@ class SliceFigureModel(Editor):
     def update_plot(self, event):
         true_x, true_y, true_data = self._calculate_plane()
 
+        self.update_line_cross()
+
         axes = self.figure.axes[0]
         self.pcm.remove()
         self.pcm = axes.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap, norm=self.norm)
         canvas = self.figure.canvas
         if canvas is not None:
             canvas.draw()
+
+    @observe(ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True))
+    def update_line_cross(self, event=None):
+        if not self.draw_cross and self.line_cross is not None:
+            self.line_cross[0].set_marker('')
+        elif self.line_cross is not None:
+            nx, ny, nz = self.mayavi_scene.normal
+            ox, oy, oz = self.mayavi_scene.origin
+            plane_z_0 = -1*(nx*ox + ny*oy)/nz + oz
+
+            points = [val.value if val is not None else np.array([0, 0, 0]) for val in self.points]
+
+            p_under = [val for val in points if val[2] <= plane_z_0]
+            p_over = [val for val in points if val[2] > plane_z_0]
+
+            if len(p_under) > 0 and len(p_over) > 0:
+                p1 = p_under[-1]
+                p2 = p_over[0]
+
+                t = (-1*nx*p1[0] - ny*p1[1] - nz*p1[2] + nx*ox + ny*oy + nz*oz) / \
+                    (nx*(p2[0] - p1[0]) + ny*(p2[1] - p1[1]) + nz*(p2[2] - p1[2]))
+                x = p1[0] + t*(p2[0] - p1[0])
+                y = p1[1] + t*(p2[1] - p1[1])
+
+                self.line_cross[0].set_data([x], [y])
+                self.line_cross[0].set_marker('x')
+
+            self.figure.canvas.draw()
 
 
 class LineFigureModel(Editor):
