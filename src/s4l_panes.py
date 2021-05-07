@@ -84,7 +84,8 @@ class PlaneAttributes(CustomDockPane):
 
     @observe('fields_model.masked_gr_z')
     def update_slider_bounds(self, event):
-        max_ind = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data), self.fields_model.masked_grid_data.shape)
+        max_ind = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data),
+                                   self.fields_model.masked_grid_data.shape)
         if self.plane_type == 'Normal to X':
             self.coord_label = 'X'
             self.low_label = '{:.2f} mm'.format(self.fields_model.masked_gr_x[0, 0, 0])

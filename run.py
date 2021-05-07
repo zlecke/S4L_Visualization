@@ -5,7 +5,7 @@ from pyface.tasks.api import TaskWindow
 from src.s4l_visualization_task import S4LVisualizationTask
 
 
-def main(argv):
+def main():
     """ A program for visualizing Sim4Life EM fields from scES simulations
     """
     from traits.api import push_exception_handler
@@ -26,6 +26,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    import sys
-
-    main(sys.argv)
+    main()

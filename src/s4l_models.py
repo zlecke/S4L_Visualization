@@ -1,6 +1,7 @@
 import copy
 
 import matplotlib
+
 matplotlib.use('Qt5Agg')
 # matplotlib.rcParams['backend.qt5'] = 'PySide2'
 
@@ -18,8 +19,10 @@ import numpy as np
 from pyface.tasks.api import Editor
 from scipy.interpolate import RegularGridInterpolator
 
-from traits.api import (HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
-                        DelegatesTo)
+from traits.api import (
+    HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
+    DelegatesTo,
+)
 import traits.observation.api as ob
 
 from traitsui.api import View, Item, Group, Spring
@@ -51,7 +54,7 @@ class EMFields(HasTraits):
     x_vals = Array()
     y_vals = Array()
     z_vals = Array()
-    
+
     data_arr = Array()
 
     masked_gr_x = Array()
@@ -111,8 +114,8 @@ class EMFields(HasTraits):
                                     z_min:z_max:len(self.z_vals) * 1j]
 
         points = np.array(
-            [[gr_x[i, j, k], gr_y[i, j, k], gr_z[i, j, k]] for i in range(gr_x.shape[0]) for j
-             in range(gr_x.shape[1]) for k in range(gr_x.shape[2])])
+                [[gr_x[i, j, k], gr_y[i, j, k], gr_z[i, j, k]] for i in range(gr_x.shape[0]) for j
+                 in range(gr_x.shape[1]) for k in range(gr_x.shape[2])])
 
         interp_func = RegularGridInterpolator((self.x_vals, self.y_vals, self.z_vals), self.data_arr)
         grid_data = interp_func(points).reshape(self.data_arr.shape)
@@ -229,7 +232,7 @@ class Mayavi3DScene(Editor):
     def create_plot(self):
         normal = self.normal
 
-        max_ind  = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data),
+        max_ind = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data),
                                    self.fields_model.masked_grid_data.shape)
 
         self.origin = np.array([self.fields_model.masked_gr_x[max_ind],
@@ -296,7 +299,8 @@ class Mayavi3DScene(Editor):
             z.append(point[2])
 
         if not hasattr(self.line, 'mlab_source'):
-            self.line = self.scene.mlab.plot3d(x, y, z, tube_radius=0.2, color=(1, 0, 0), figure=self.scene.mayavi_scene)
+            self.line = self.scene.mlab.plot3d(x, y, z, tube_radius=0.2, color=(1, 0, 0),
+                                               figure=self.scene.mayavi_scene)
         else:
             self.line.mlab_source.reset(x=x, y=y, z=z)
 
@@ -316,8 +320,8 @@ class Mayavi3DScene(Editor):
             self.surf.parent.scalar_lut_manager.shadow = True
             self.surf.parent.scalar_lut_manager.use_default_range = False
             self.surf.parent.scalar_lut_manager.data_range = np.array(
-                [np.nanmin(self.fields_model.masked_grid_data),
-                 np.nanmax(self.fields_model.masked_grid_data)])
+                    [np.nanmin(self.fields_model.masked_grid_data),
+                     np.nanmax(self.fields_model.masked_grid_data)])
             self.surf.parent.scalar_lut_manager.lut.nan_color = np.array([0, 0, 0, 0])
 
 
@@ -345,9 +349,9 @@ class SliceFigureModel(Editor):
 
     def default_traits_view(self):
         return View(
-            Group(
-                Item('figure', editor=MPLFigureEditor(), show_label=False),
-            )
+                Group(
+                        Item('figure', editor=MPLFigureEditor(), show_label=False),
+                )
         )
 
     def create(self, parent):
@@ -374,13 +378,13 @@ class SliceFigureModel(Editor):
     def toggle_log_scale(self, event):
         if event.new:
             self.norm = LogNorm(
-                vmin=np.nanmin(self.fields_model.masked_grid_data),
-                vmax=np.nanmax(self.fields_model.masked_grid_data)
-                                )
+                    vmin=np.nanmin(self.fields_model.masked_grid_data),
+                    vmax=np.nanmax(self.fields_model.masked_grid_data)
+            )
         else:
             self.norm = Normalize(
-                vmin=np.nanmin(self.fields_model.masked_grid_data),
-                vmax=np.nanmax(self.fields_model.masked_grid_data)
+                    vmin=np.nanmin(self.fields_model.masked_grid_data),
+                    vmax=np.nanmax(self.fields_model.masked_grid_data)
             )
 
         self.clb.update_normal(cm.ScalarMappable(norm=self.norm, cmap=self.mycmap))
@@ -464,7 +468,7 @@ class SliceFigureModel(Editor):
         elif self.line_cross is not None:
             nx, ny, nz = self.mayavi_scene.normal
             ox, oy, oz = self.mayavi_scene.origin
-            plane_z_0 = -1*(nx*ox + ny*oy)/nz + oz
+            plane_z_0 = -1 * (nx * ox + ny * oy) / nz + oz
 
             points = [val.value if val is not None else np.array([0, 0, 0]) for val in self.points]
 
@@ -475,10 +479,10 @@ class SliceFigureModel(Editor):
                 p1 = p_under[-1]
                 p2 = p_over[0]
 
-                t = (-1*nx*p1[0] - ny*p1[1] - nz*p1[2] + nx*ox + ny*oy + nz*oz) / \
-                    (nx*(p2[0] - p1[0]) + ny*(p2[1] - p1[1]) + nz*(p2[2] - p1[2]))
-                x = p1[0] + t*(p2[0] - p1[0])
-                y = p1[1] + t*(p2[1] - p1[1])
+                t = (-1 * nx * p1[0] - ny * p1[1] - nz * p1[2] + nx * ox + ny * oy + nz * oz) /\
+                    (nx * (p2[0] - p1[0]) + ny * (p2[1] - p1[1]) + nz * (p2[2] - p1[2]))
+                x = p1[0] + t * (p2[0] - p1[0])
+                y = p1[1] + t * (p2[1] - p1[1])
 
                 self.line_cross[0].set_data([x], [y])
                 self.line_cross[0].set_marker('x')
@@ -508,9 +512,9 @@ class LineFigureModel(Editor):
 
     def default_traits_view(self):
         return View(
-            Group(
-                Item('figure', editor=MPLFigureEditor(), show_label=False),
-            )
+                Group(
+                        Item('figure', editor=MPLFigureEditor(), show_label=False),
+                )
         )
 
     def create(self, parent):
@@ -532,25 +536,25 @@ class LineFigureModel(Editor):
             out_df.to_excel(file_path)
         elif file_path.endswith('.csv') or file_path.endswith('.txt'):
             out_df.to_csv(file_path)
-    
+
     def _calculate_between_pair(self, point_1, point_2, prev_line_pos=0):
         x = np.linspace(point_1[0], point_2[0], 1000)
         y = np.linspace(point_1[1], point_2[1], 1000)
         z = np.linspace(point_1[2], point_2[2], 1000)
-        
+
         line_pos = np.linspace(0, np.linalg.norm(point_2 - point_1), 1000) + prev_line_pos
         line_data = self.interp_func((x, y, z))
-        
+
         return line_pos, line_data
 
     def _interp_func_default(self):
         func = RegularGridInterpolator(
-            (
-                self.fields_model.x_vals,
-                self.fields_model.y_vals,
-                self.fields_model.z_vals
-            ),
-            self.fields_model.data_arr
+                (
+                        self.fields_model.x_vals,
+                        self.fields_model.y_vals,
+                        self.fields_model.z_vals
+                ),
+                self.fields_model.data_arr
         )
         return func
 

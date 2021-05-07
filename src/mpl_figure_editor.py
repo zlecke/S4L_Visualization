@@ -1,17 +1,19 @@
-from pyface.qt import QtGui, QtCore
+from pyface.qt import QtGui
 
 import matplotlib
+
 matplotlib.use('Qt5Agg')
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
 from traitsui.qt4.editor import Editor
 from traitsui.qt4.basic_editor_factory import BasicEditorFactory
 
-class _MPLFigureEditor(Editor):
 
-    scrollable  = True
-    
+class _MPLFigureEditor(Editor):
+    scrollable = True
+
     toolbar = True
 
     def init(self, parent):
@@ -28,7 +30,7 @@ class _MPLFigureEditor(Editor):
             frame = QtGui.QWidget()
             mpl_canvas = FigureCanvas(self.value)
             mpl_canvas.setParent(frame)
-            mpl_toolbar = NavigationToolbar2QT(mpl_canvas,frame)
+            mpl_toolbar = NavigationToolbar2QT(mpl_canvas, frame)
 
             vbox = QtGui.QVBoxLayout()
             vbox.addWidget(mpl_toolbar)
@@ -36,9 +38,9 @@ class _MPLFigureEditor(Editor):
             frame.setLayout(vbox)
         else:
             frame = FigureCanvas(self.value)
-        
+
         return frame
 
-class MPLFigureEditor(BasicEditorFactory):
 
+class MPLFigureEditor(BasicEditorFactory):
     klass = _MPLFigureEditor

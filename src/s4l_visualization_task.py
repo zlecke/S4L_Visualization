@@ -1,20 +1,6 @@
-import numpy as np
-import pandas as pd
-from pyface.tasks.action.task_action import DockPaneAction
-from pyface.tasks.task_layout import Splitter, Tabbed
-
-from scipy.io import loadmat
-from scipy.interpolate import RegularGridInterpolator
-
-from pyface.qt import QtCore, QtGui
-from pyface.tasks.api import (
-    Task,
-    TaskLayout,
-    VSplitter,
-    PaneItem,
-    IEditor,
-    IEditorAreaPane,
-    SplitEditorAreaPane
+from pyface.api import (
+    FileDialog,
+    OK,
 )
 from pyface.tasks.action.api import (
     DockPaneToggleGroup,
@@ -22,16 +8,21 @@ from pyface.tasks.action.api import (
     SMenu,
     TaskAction,
 )
-from pyface.api import (
-    FileDialog,
-    OK
+from pyface.tasks.api import (
+    Task,
+    TaskLayout,
+    PaneItem,
+    IEditor,
+    IEditorAreaPane,
+    SplitEditorAreaPane,
 )
-from traits.api import Property, Instance, Array, Int, observe, DelegatesTo
+from pyface.tasks.task_layout import Splitter, Tabbed
+from traits.api import Property, Instance, observe
 from traits.trait_types import Bool
 
 from .s4l_groups import FieldSelectionGroup
-from .s4l_panes import PlaneAttributes, LineAttributes
 from .s4l_models import EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
+from .s4l_panes import PlaneAttributes, LineAttributes
 
 
 class S4LVisualizationTask(Task):
