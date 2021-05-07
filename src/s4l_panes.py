@@ -6,9 +6,9 @@ from traits.api import Str, Int, Enum, Array, observe, List, Instance, Button
 from traitsui.api import View, Item, Group, EnumEditor, ArrayEditor, ListEditor
 from traitsui.editors import InstanceEditor
 
-from q_range_editor import QRangeEditor
-from s4l_models import EMFields
-from util import ArrayClass
+from .q_range_editor import QRangeEditor
+from .s4l_models import EMFields
+from .util import ArrayClass
 
 
 class CustomDockPane(TraitsDockPane):

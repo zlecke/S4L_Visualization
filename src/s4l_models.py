@@ -9,8 +9,8 @@ import pandas as pd
 from matplotlib import cm
 from matplotlib.colors import LogNorm, Normalize
 
-from mpl_figure_editor import MPLFigureEditor
-from util import ArrayClass, scale_factor, scalar_fields, arg_find_nearest
+from .mpl_figure_editor import MPLFigureEditor
+from .util import ArrayClass, scale_factor, scalar_fields, arg_find_nearest
 
 from matplotlib.figure import Figure
 
@@ -35,7 +35,7 @@ from mayavi.filters.data_set_clipper import DataSetClipper
 
 from scipy.io import loadmat
 
-from preferences import default_csf_model
+from .preferences import default_csf_model
 
 
 class EMFields(HasTraits):

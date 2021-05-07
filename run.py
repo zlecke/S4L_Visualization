@@ -2,7 +2,7 @@ from pyface.api import GUI
 from pyface.tasks.api import TaskWindow
 
 
-from s4l_visualization_task import S4LVisualizationTask
+from src.s4l_visualization_task import S4LVisualizationTask
 
 
 def main(argv):
