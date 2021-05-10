@@ -79,3 +79,8 @@ Allows the user to choose a new spinal cord model file.
 
 .. note::
    The file must be a VTK model file with extension ``.vtk``.
+
+Choose Field
+------------
+
+This allows the user to change between fields that are included in the current data file.

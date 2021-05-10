@@ -27,3 +27,9 @@ Line Figure
 ===========
 
 .. image:: /_static/line-figure.png
+
+The Line Figure shows the data along the line described in the :ref:`line-attributes` dock pane.
+
+This figure can be saved as an image by clicking the save icon located just above the figure
+title. The data in this figure can be exported using the File>Export>Export Line
+:ref:`menu item <file-menu>`.
