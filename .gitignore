@@ -7,3 +7,5 @@ slvenv/
 *.pickle
 ExportedJFieldData.txt
 mat_test.py
+/docs/_build/
+!/docs/_static/*.png
