@@ -7,7 +7,7 @@ Opening Page
 
 When you first start the program, it opens to this page:
 
-.. image:: /_static/start-page.png
+.. image:: /_static/user/start-page.png
 
 From this page, you can open a new data file to visualize by either clicking the "Open Data File"
 in the center of the page, or by using the File>Open... :ref:`menu item <open-item>`.
@@ -21,7 +21,7 @@ the :doc:`3d-view`, and the :doc:`dock-panes` on the sides.
 The :doc:`left-panel` and :doc:`3d-view` panel can be resized by dragging the divider between
 them back and forth.
 
-.. image:: /_static/ui-layout.png
+.. image:: /_static/user/ui-layout.png
 
 .. toctree::
    :maxdepth: 2

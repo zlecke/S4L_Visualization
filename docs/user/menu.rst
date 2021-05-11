@@ -12,14 +12,14 @@ File Menu
 
 The File menu contains 2 items: the :ref:`open-item` and the :ref:`export` menu.
 
-.. image:: /_static/file-menu.png
+.. image:: /_static/user/file-menu.png
 
 .. _open-item:
 
 Open...
 -------
 
-.. image:: /_static/choose-data-file.png
+.. image:: /_static/user/choose-data-file.png
 
 Allows user to open new data file for visualization.
 
@@ -41,7 +41,7 @@ The export menu contains 2 items: the :ref:`export-slice` button and the
 Export Slice
 ^^^^^^^^^^^^
 
-.. image:: /_static/export-slice.png
+.. image:: /_static/user/export-slice.png
 
 Allows the user to export the data from the current :ref:`slice-figure` to a
 CSV or Excel file.
@@ -51,7 +51,7 @@ CSV or Excel file.
 Export Line
 ^^^^^^^^^^^
 
-.. image:: /_static/export-line.png
+.. image:: /_static/user/export-line.png
 
 Allows the user to export the data from the current :ref:`line-figure` to a
 CSV or Excel file.
@@ -64,7 +64,7 @@ View Menu
 The View Menu contains 4 items: the :ref:`panes` menu, the :ref:`full-model`
 toggle, the :ref:`log-scale` toggle, and the :ref:`line-cross-marker` toggle.
 
-.. image:: /_static/view-menu.png
+.. image:: /_static/user/view-menu.png
 
 .. _panes:
 
@@ -105,14 +105,14 @@ Edit Menu
 The edit menu contains 2 items: the :ref:`new-cord-model` button and the
 :ref:`choose-field` menu.
 
-.. image:: /_static/edit-menu.png
+.. image:: /_static/user/edit-menu.png
 
 .. _new-cord-model:
 
 New Cord Model
 --------------
 
-.. image:: /_static/choose-cord-model.png
+.. image:: /_static/user/choose-cord-model.png
 
 Allows the user to choose a new spinal cord model file.
 

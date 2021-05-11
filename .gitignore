@@ -8,4 +8,4 @@ slvenv/
 ExportedJFieldData.txt
 mat_test.py
 /docs/_build/
-!/docs/_static/*.png
+!/docs/_static/**/*.png

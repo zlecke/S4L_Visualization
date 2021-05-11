@@ -9,7 +9,7 @@ The left panel has 2 tabs: the :ref:`slice-figure` and the :ref:`line-figure`.
 Slice Figure
 ============
 
-.. image:: /_static/screenshot-cursor.jpg
+.. image:: /_static/user/screenshot-cursor.jpg
 
 The Slice Figure shows the data along the cut plane described in the
 :ref:`plane-attributes` dock pane.
@@ -26,7 +26,7 @@ to choose points for the :ref:`line-figure` in the :ref:`line-attributes` pane.
 Line Figure
 ===========
 
-.. image:: /_static/line-figure.png
+.. image:: /_static/user/line-figure.png
 
 The Line Figure shows the data along the line described in the :ref:`line-attributes` dock pane.
 

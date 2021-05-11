@@ -16,7 +16,7 @@ tabbed pages.
 Plane Attributes
 ================
 
-.. image:: /_static/plane-attributes.png
+.. image:: /_static/user/plane-attributes.png
 
 The plane attributes dock pane allows the user to change the
 plane along which the data being visualized is cut, also known as the "cut plane".
@@ -42,7 +42,7 @@ shown when the cut plane is chosen to be an arbitrary plane.
 Line Attributes
 ===============
 
-.. image:: /_static/point-menu.png
+.. image:: /_static/user/point-menu.png
 
 The line attributes dock pane allows the user to add, remove, and edit the points
 describing the line along which data is sampled to produce the :ref:`line-figure`.

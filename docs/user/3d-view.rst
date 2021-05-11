@@ -2,7 +2,7 @@
 3D View
 *******
 
-.. image:: /_static/3d-view.png
+.. image:: /_static/user/3d-view.png
 
 The 3D visualizations are done using :doc:`Mayavi <mayavi:index>`. This pane allows the
 user to zoom, rotate, pan, and many other things to better visualize the fields being
