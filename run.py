@@ -1,5 +1,12 @@
+"""
+Displays field data from Sim4Life electromagnetic low-frequency simulations of
+spinal cord electrostimulation.
+"""
+
 from pyface.api import GUI
 from pyface.tasks.api import TaskWindow
+
+from traits.api import push_exception_handler
 
 
 from src.s4l_visualization_task import S4LVisualizationTask
@@ -8,7 +15,6 @@ from src.s4l_visualization_task import S4LVisualizationTask
 def main():
     """ A program for visualizing Sim4Life EM fields from scES simulations
     """
-    from traits.api import push_exception_handler
     push_exception_handler(reraise_exceptions=True)
     # Create the GUI (this does NOT start the GUI event loop).
     gui = GUI()

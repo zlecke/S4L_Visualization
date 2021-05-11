@@ -1,9 +1,16 @@
+"""
+Pyface Action Groups for the S4L Visualization application
+"""
 from pyface.tasks.api import Task
 from pyface.action.api import Group, Action, ActionItem
 from traits.api import List, Property, cached_property, observe, Instance, Bool
 
 
 class SelectFieldAction(Action):
+    """
+    A Pyface Action for changing and displaying which field is currently being
+    visualized by the S4L Visualization application.
+    """
     task = Instance(Task)
 
     style = 'radio'
@@ -25,6 +32,12 @@ class SelectFieldAction(Action):
 
 
 class FieldSelectionGroup(Group):
+    """
+    A Pyface Action Group for selecting which field to display in the
+    S4L Visualization application.
+    """
+    # pylint: disable=unused-argument, attribute-defined-outside-init
+
     id = 'FieldSelectionGroup'
     items = List()
 
@@ -63,6 +76,14 @@ class FieldSelectionGroup(Group):
         manager.changed = True
 
     def get_manager(self):
+        """
+        Returns the group manager
+
+        Returns
+        -------
+        manager : pyface.action.ActionManager
+            The ActionManager of the group
+        """
         manager = self
         while isinstance(manager, Group):
             manager = manager.parent

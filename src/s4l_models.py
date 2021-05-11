@@ -1,49 +1,49 @@
+"""
+Traits models for the S4L Visualization application.
+"""
+# pylint: disable=attribute-defined-outside-init, unused-argument
 import copy
 
-import matplotlib
-
-matplotlib.use('Qt5Agg')
-# matplotlib.rcParams['backend.qt5'] = 'PySide2'
-
-# We want matplotlib to use a QT backend
-import pandas as pd
-from matplotlib import cm
-from matplotlib.colors import LogNorm, Normalize
-
-from .mpl_figure_editor import MPLFigureEditor
-from .util import ArrayClass, scale_factor, scalar_fields, arg_find_nearest
-
-from matplotlib.figure import Figure
-
 import numpy as np
+import pandas as pd
+import traits.observation.api as ob
+from mayavi.core.ui.mayavi_scene import MayaviScene
+from mayavi.filters.cut_plane import CutPlane
+from mayavi.filters.data_set_clipper import DataSetClipper
+from mayavi.modules.surface import Surface
+from mayavi.sources.array_source import ArraySource
+from mayavi.tools.mlab_scene_model import MlabSceneModel
 from pyface.tasks.api import Editor
 from scipy.interpolate import RegularGridInterpolator
-
+from scipy.io import loadmat
 from traits.api import (
     HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
     DelegatesTo,
 )
-import traits.observation.api as ob
-
 from traitsui.api import View, Item, Group, Spring
-
 from tvtk.pyface.scene_editor import SceneEditor
 
-from mayavi.tools.mlab_scene_model import MlabSceneModel
-from mayavi.core.ui.mayavi_scene import MayaviScene
-from mayavi.sources.array_source import ArraySource
-from mayavi.filters.cut_plane import CutPlane
-from mayavi.modules.surface import Surface
-from mayavi.filters.data_set_clipper import DataSetClipper
-
-from scipy.io import loadmat
-
+from .mpl_figure_editor import MPLFigureEditor
 from .preferences import default_csf_model
+from .util import ArrayClass, SCALE_FACTOR, scalar_fields, arg_find_nearest
+
+# pylint: disable=wrong-import-position, wrong-import-order
+
+# We want matplotlib to use a QT backend
+import matplotlib
+matplotlib.use('Qt5Agg')
+
+from matplotlib import cm
+from matplotlib.colors import LogNorm, Normalize
+from matplotlib.figure import Figure
 
 
 class EMFields(HasTraits):
     """ A collection of EM fields output from Sim4Life EM simulations
     """
+
+    # pylint: disable=too-many-instance-attributes
+
     # Path to field data file
     data_path = File()
 
@@ -80,7 +80,7 @@ class EMFields(HasTraits):
         self.z_vals = tmp
 
         self.field_keys = [key for key in self.data_dict.keys() if 'Snapshot' in key and
-                           not any([field in key for field in scalar_fields])]
+                           not any(field in key for field in scalar_fields)]
 
         if self.selected_field_key not in self.field_keys:
             self.selected_field_key = self.field_keys[0]
@@ -92,7 +92,15 @@ class EMFields(HasTraits):
         self.calculate_field()
 
     @observe('selected_field_key', post_init=True)
-    def calculate_field(self, event=None):
+    def calculate_field(self, event=None):  # pylint: disable=unused-argument, too-many-locals
+        """
+        Calculate the current selected field values and set the grid locations and values
+
+        Parameters
+        ----------
+        event
+            Trait change event for selected_field_key
+        """
         data_x, data_y, data_z = abs(self.data_dict[self.selected_field_key]).T
 
         self.data_arr = np.sqrt(data_x ** 2 + data_y ** 2 + data_z ** 2).reshape(self.z_vals.size,
@@ -110,14 +118,15 @@ class EMFields(HasTraits):
         z_max = int(np.floor(self.z_vals.max()))
 
         gr_x, gr_y, gr_z = np.mgrid[x_min:x_max:len(self.x_vals) * 1j,
-                                    y_min:y_max:len(self.y_vals) * 1j,
-                                    z_min:z_max:len(self.z_vals) * 1j]
+                           y_min:y_max:len(self.y_vals) * 1j,
+                           z_min:z_max:len(self.z_vals) * 1j]
 
         points = np.array(
                 [[gr_x[i, j, k], gr_y[i, j, k], gr_z[i, j, k]] for i in range(gr_x.shape[0]) for j
                  in range(gr_x.shape[1]) for k in range(gr_x.shape[2])])
 
-        interp_func = RegularGridInterpolator((self.x_vals, self.y_vals, self.z_vals), self.data_arr)
+        interp_func = RegularGridInterpolator((self.x_vals, self.y_vals, self.z_vals),
+                                              self.data_arr)
         grid_data = interp_func(points).reshape(self.data_arr.shape)
 
         mask = np.all(np.isnan(grid_data), axis=(0, 1))
@@ -139,7 +148,10 @@ class EMFields(HasTraits):
         self.masked_gr_z = masked_gr_z[:, ~masky, :]
 
 
-class Mayavi3DScene(Editor):
+class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
+    """
+    A Pyface Tasks Editor for holding a Mayavi scene
+    """
     model = Instance(HasTraits)
     ui = Instance("traitsui.ui.UI")
 
@@ -157,7 +169,8 @@ class Mayavi3DScene(Editor):
 
     data_set_clipper = Instance(DataSetClipper)
 
-    points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])), ArrayClass(value=np.array([0, 0, 1]))])
+    points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])),
+                                     ArrayClass(value=np.array([0, 0, 1]))])
     line = Instance(Surface)
     line_points = Any()
 
@@ -174,21 +187,48 @@ class Mayavi3DScene(Editor):
 
     log_scale = Bool(True)
 
-    def default_traits_view(self):
+    def default_traits_view(self):  # pylint: disable=no-self-use
+        """
+        Creates the default traits View object for the model
+
+        Returns
+        -------
+        default_traits_view : traitsui.view.View
+            The default traits View object for the model
+        """
         return View(Item('scene', show_label=False, editor=SceneEditor(scene_class=MayaviScene)))
 
     def create(self, parent):
-        self.ui = self.edit_traits(kind='subpanel', parent=parent)
-        self.control = self.ui.control
+        """
+        Create and set the widget(s) for the Editor.
+
+        Parameters
+        ----------
+        parent
+            The parent widget for the Editor
+        """
+        self.ui = self.edit_traits(kind='subpanel', parent=parent)  # pylint: disable=invalid-name
+        self.control = self.ui.control  # pylint: disable=attribute-defined-outside-init
 
     def destroy(self):
-        self.control = None
+        """
+        Destroy the Editor and clean up after
+        """
+        self.control = None  # pylint: disable=attribute-defined-outside-init
         if self.ui is not None:
             self.ui.dispose()
         self.ui = None
 
     @observe('log_scale', post_init=True)
     def toggle_log_scale(self, event):
+        """
+        Toggles between using a logarithmic scale and a linear scale
+
+        Parameters
+        ----------
+        event
+            The trait change event for log_scale
+        """
         if event.new:
             self.surf.parent.scalar_lut_manager.lut.scale = 'log10'
         else:
@@ -197,6 +237,14 @@ class Mayavi3DScene(Editor):
 
     @observe('origin', post_init=True)
     def update_origin(self, event):
+        """
+        Update objects when the cut plane origin is changed.
+
+        Parameters
+        ----------
+        event
+            The trait change event for origin
+        """
         if hasattr(self.data_set_clipper, 'widget'):
             self.data_set_clipper.widget.widget.origin = event.new
             self.cut.filters[0].widget.origin = event.new
@@ -204,6 +252,14 @@ class Mayavi3DScene(Editor):
 
     @observe('normal', post_init=True)
     def update_normal(self, event):
+        """
+        Update objects when the cut plane normal is changed.
+
+        Parameters
+        ----------
+        event
+            The trait change event for normal
+        """
         if hasattr(self.data_set_clipper, 'widget'):
             self.data_set_clipper.widget.widget.normal = event.new
             self.cut.filters[0].widget.normal = event.new
@@ -211,18 +267,41 @@ class Mayavi3DScene(Editor):
 
     @observe('show_full_model', post_init=True)
     def toggle_full_model(self, event):
-        self.csf_surface.visible = not self.show_full_model
-        self.full_csf_surface.visible = self.show_full_model
+        """
+        Toggles between showing the full spinal cord model and showing only below the cut plane.
+        Parameters
+        ----------
+        event
+            The trait change event for show_full_model
+        """
+        self.csf_surface.visible = not event.new
+        self.full_csf_surface.visible = event.new
 
         self.scene.mlab.draw()
 
     @observe('csf_model', post_init=True)
     def change_cord_model(self, event):
+        """
+        Change the spinal cord model file used for the 3D display.
+
+        Parameters
+        ----------
+        event
+            The trait change event for csf_model
+        """
         if self.csf_model_reader is not None:
-            self.csf_model_reader.initialize(self.csf_model)
+            self.csf_model_reader.initialize(event.new)
 
     @observe('scene.activated')
-    def initialize_camera(self, info=None):
+    def initialize_camera(self, event=None):  # pylint: disable=unused-argument
+        """
+        Set the camera for the Mayavi scene to a pre-determined perspective.
+
+        Parameters
+        ----------
+        event
+            The trait change event for scene.activated
+        """
         if self.csf_surface is not None:
             self.scene.engine.current_object = self.csf_surface
         self.scene.mlab.view(azimuth=-35, elevation=75)
@@ -230,6 +309,9 @@ class Mayavi3DScene(Editor):
         self.scene.mlab.draw()
 
     def create_plot(self):
+        """
+        Create the 3D objects to be shown.
+        """
         normal = self.normal
 
         max_ind = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data),
@@ -282,31 +364,45 @@ class Mayavi3DScene(Editor):
 
         self.scene.mlab.draw()
 
-    @observe(ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True), post_init=True)
+    @observe(
+            ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True),
+            post_init=True)
     def draw_line(self, event):
+        """
+        Create or update the line described by the points in :ref:`line-attributes`.
+        Parameters
+        ----------
+        event
+            The trait change event for points
+        """
         if None in event.new and len(event.old) == len(event.new) and None not in event.old:
             self.points = event.old
             return
-        points = np.array([val.value if val is not None else np.array([0, 0, 0]) for val in self.points])
+        points = np.array(
+                [val.value if val is not None else np.array([0, 0, 0]) for val in self.points])
 
-        x = []
-        y = []
-        z = []
+        x_positions = []
+        y_positions = []
+        z_positions = []
 
         for point in points:
-            x.append(point[0])
-            y.append(point[1])
-            z.append(point[2])
+            x_positions.append(point[0])
+            y_positions.append(point[1])
+            z_positions.append(point[2])
 
         if not hasattr(self.line, 'mlab_source'):
-            self.line = self.scene.mlab.plot3d(x, y, z, tube_radius=0.2, color=(1, 0, 0),
+            self.line = self.scene.mlab.plot3d(x_positions, y_positions, z_positions,
+                                               tube_radius=0.2, color=(1, 0, 0),
                                                figure=self.scene.mayavi_scene)
         else:
-            self.line.mlab_source.reset(x=x, y=y, z=z)
+            self.line.mlab_source.reset(x=x_positions, y=y_positions, z=z_positions)
 
         self.scene.mlab.draw()
 
     def disable_widgets(self):
+        """
+        Disable widgets to be hidden and set up color properties.
+        """
         if self.data_set_clipper.widget.widget.enabled:
             self.cut.filters[0].widget.enabled = False
             self.data_set_clipper.widget.widget.enabled = False
@@ -326,6 +422,9 @@ class Mayavi3DScene(Editor):
 
 
 class SliceFigureModel(Editor):
+    """
+    A Pyface Tasks Editor to hold the slice figure.
+    """
     model = Instance(HasTraits)
     ui = Instance("traitsui.ui.UI")
 
@@ -347,7 +446,15 @@ class SliceFigureModel(Editor):
     points = DelegatesTo('mayavi_scene')
     line_cross = Any()
 
-    def default_traits_view(self):
+    def default_traits_view(self):  # pylint: disable=no-self-use
+        """
+        Creates the default traits View object for the model
+
+        Returns
+        -------
+        default_traits_view : traitsui.view.View
+            The default traits View object for the model
+        """
         return View(
                 Group(
                         Item('figure', editor=MPLFigureEditor(), show_label=False),
@@ -355,19 +462,38 @@ class SliceFigureModel(Editor):
         )
 
     def create(self, parent):
-        self.ui = self.edit_traits(kind='subpanel', parent=parent)
-        self.control = self.ui.control
+        """
+        Create and set the widget(s) for the Editor.
+
+        Parameters
+        ----------
+        parent
+            The parent widget for the Editor
+        """
+        self.ui = self.edit_traits(kind='subpanel', parent=parent)  # pylint: disable=invalid-name
+        self.control = self.ui.control  # pylint: disable=attribute-defined-outside-init
 
     def destroy(self):
-        self.control = None
+        """
+        Destroy the Editor and clean up after
+        """
+        self.control = None  # pylint: disable=attribute-defined-outside-init
         if self.ui is not None:
             self.ui.dispose()
         self.ui = None
 
     def export_slice(self, file_path):
-        x, y, data = self._calculate_plane()
+        """
+        Export data for slice to Excel or CSV file.
 
-        out_df = pd.DataFrame(data=data, index=y, columns=x)
+        Parameters
+        ----------
+        file_path : os.PathLike
+            Path to output file
+        """
+        x_positions, y_positions, data = self._calculate_plane()
+
+        out_df = pd.DataFrame(data=data, index=y_positions, columns=x_positions)
 
         if file_path.endswith('.xlsx'):
             out_df.to_excel(file_path)
@@ -376,6 +502,14 @@ class SliceFigureModel(Editor):
 
     @observe('log_scale', post_init=True)
     def toggle_log_scale(self, event):
+        """
+        Toggles between using a logarithmic scale and a linear scale
+
+        Parameters
+        ----------
+        event
+            The trait change event for log_scale
+        """
         if event.new:
             self.norm = LogNorm(
                     vmin=np.nanmin(self.fields_model.masked_grid_data),
@@ -392,12 +526,15 @@ class SliceFigureModel(Editor):
         self.update_plot(event)
 
     def create_plot(self):
+        """
+        Create the slice figure plot.
+        """
         true_x, true_y, true_data = self._calculate_plane()
         self.mycmap = copy.copy(cm.get_cmap('jet'))
 
         self.figure.clear()
 
-        ax = self.figure.add_subplot(111)
+        axes = self.figure.add_subplot(111)
         self.figure.subplots_adjust(right=0.75, bottom=0.15)
 
         if self.log_scale:
@@ -407,68 +544,90 @@ class SliceFigureModel(Editor):
             self.norm = Normalize(vmin=np.nanmin(self.fields_model.masked_grid_data),
                                   vmax=np.nanmax(self.fields_model.masked_grid_data))
 
-        self.pcm = ax.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap, norm=self.norm)
+        self.pcm = axes.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap,
+                                   norm=self.norm)
 
         if self.draw_cross:
-            self.line_cross = ax.plot([0], [0], 'rx')
+            self.line_cross = axes.plot([0], [0], 'rx')
         else:
-            self.line_cross = ax.plot([0], [0], '')
+            self.line_cross = axes.plot([0], [0], '')
 
-        ax.set_ylim(bottom=np.nanmin(self.fields_model.masked_gr_y[0, :, 0]) - 2,
-                    top=np.nanmax(self.fields_model.masked_gr_y[0, :, 0]) + 2)
+        axes.set_ylim(bottom=np.nanmin(self.fields_model.masked_gr_y[0, :, 0]) - 2,
+                      top=np.nanmax(self.fields_model.masked_gr_y[0, :, 0]) + 2)
 
-        ax.set_xlim(left=np.nanmin(self.fields_model.masked_gr_x[:, 0, 0]) - 2,
-                    right=np.nanmax(self.fields_model.masked_gr_x[:, 0, 0]) + 2)
+        axes.set_xlim(left=np.nanmin(self.fields_model.masked_gr_x[:, 0, 0]) - 2,
+                      right=np.nanmax(self.fields_model.masked_gr_x[:, 0, 0]) + 2)
 
-        ax.set_xlabel('X (mm)')
-        ax.set_ylabel('Y (mm)')
+        axes.set_xlabel('X (mm)')
+        axes.set_ylabel('Y (mm)')
 
-        ax.set_title('Current Density Magnitude')
+        axes.set_title('Current Density Magnitude')
 
-        self.clb = self.figure.colorbar(cm.ScalarMappable(norm=self.norm, cmap=self.mycmap), ax=ax)
+        self.clb = self.figure.colorbar(cm.ScalarMappable(norm=self.norm, cmap=self.mycmap),
+                                        ax=axes)
         self.clb.set_label('Current Density ($A/m^2$)', rotation=270, labelpad=15)
 
         self.figure.canvas.draw()
 
     def _calculate_plane(self):
         dataset = self.mayavi_scene.cut.outputs[0].output
-        datax, datay, dataz = dataset.points.to_array().T
+        datax, datay, dataz = dataset.points.to_array().T  # pylint: disable=unused-variable
         scalar_data = dataset.point_data.scalars.to_array()
 
-        true_x = np.unique(np.floor(datax / scale_factor).astype(int)) * scale_factor
-        true_y = np.unique(np.floor(datay / scale_factor).astype(int)) * scale_factor
+        true_x = np.unique(np.floor(datax / SCALE_FACTOR).astype(int)) * SCALE_FACTOR
+        true_y = np.unique(np.floor(datay / SCALE_FACTOR).astype(int)) * SCALE_FACTOR
 
         true_data = np.empty((true_y.size, true_x.size))
         true_data[:] = np.nan
 
         for i in range(scalar_data.size):
-            true_data[arg_find_nearest(true_y, datay[i]), arg_find_nearest(true_x, datax[i])] = scalar_data[i]
+            true_data[arg_find_nearest(true_y, datay[i]), arg_find_nearest(true_x, datax[i])] =\
+                scalar_data[i]
 
         return true_x, true_y, true_data
 
     @observe('mayavi_scene:origin')
     @observe('mayavi_scene:normal')
-    def update_plot(self, event):
+    def update_plot(self, event):  # pylint: disable=unused-argument
+        """
+        Update the slice figure when the cut plane origin or normal are changed.
+
+        Parameters
+        ----------
+        event
+            The trait change event for the cut plane origin or normal
+        """
         true_x, true_y, true_data = self._calculate_plane()
 
         self.update_line_cross()
 
         axes = self.figure.axes[0]
         self.pcm.remove()
-        self.pcm = axes.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap, norm=self.norm)
+        self.pcm = axes.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap,
+                                   norm=self.norm)
         canvas = self.figure.canvas
         if canvas is not None:
             canvas.draw()
 
     @observe('draw_cross', post_init=True)
-    @observe(ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True))
-    def update_line_cross(self, event=None):
+    @observe(
+            ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True))
+    def update_line_cross(self, event=None):  # pylint: disable=too-many-locals, unused-argument
+        """
+        Update the location of the line cross marker when draw_cross is changed or when the points
+        are changed.
+
+        Parameters
+        ----------
+        event
+            The trait change event for draw_cross or points
+        """
         if not self.draw_cross and self.line_cross is not None:
             self.line_cross[0].set_marker('')
         elif self.line_cross is not None:
-            nx, ny, nz = self.mayavi_scene.normal
-            ox, oy, oz = self.mayavi_scene.origin
-            plane_z_0 = -1 * (nx * ox + ny * oy) / nz + oz
+            normal_x, normal_y, normal_z = self.mayavi_scene.normal
+            origin_x, origin_y, origin_z = self.mayavi_scene.origin
+            plane_z_0 = -1 * (normal_x * origin_x + normal_y * origin_y) / normal_z + origin_z
 
             points = [val.value if val is not None else np.array([0, 0, 0]) for val in self.points]
 
@@ -476,21 +635,31 @@ class SliceFigureModel(Editor):
             p_over = [val for val in points if val[2] > plane_z_0]
 
             if len(p_under) > 0 and len(p_over) > 0:
-                p1 = p_under[-1]
-                p2 = p_over[0]
+                point_1 = p_under[-1]
+                point_2 = p_over[0]
 
-                t = (-1 * nx * p1[0] - ny * p1[1] - nz * p1[2] + nx * ox + ny * oy + nz * oz) /\
-                    (nx * (p2[0] - p1[0]) + ny * (p2[1] - p1[1]) + nz * (p2[2] - p1[2]))
-                x = p1[0] + t * (p2[0] - p1[0])
-                y = p1[1] + t * (p2[1] - p1[1])
+                parametric_t = (-1 * normal_x * point_1[0]
+                                - normal_y * point_1[1]
+                                - normal_z * point_1[2]
+                                + normal_x * origin_x
+                                + normal_y * origin_y
+                                + normal_z * origin_z) /\
+                               (normal_x * (point_2[0] - point_1[0])
+                                + normal_y * (point_2[1] - point_1[1])
+                                + normal_z * (point_2[2] - point_1[2]))
+                x_position = point_1[0] + parametric_t * (point_2[0] - point_1[0])
+                y_position = point_1[1] + parametric_t * (point_2[1] - point_1[1])
 
-                self.line_cross[0].set_data([x], [y])
+                self.line_cross[0].set_data([x_position], [y_position])
                 self.line_cross[0].set_marker('x')
 
         self.figure.canvas.draw()
 
 
 class LineFigureModel(Editor):
+    """
+    A Pyface Traits Editor to hold the line figure.
+    """
     model = Instance(HasTraits)
     ui = Instance("traitsui.ui.UI")
 
@@ -500,7 +669,8 @@ class LineFigureModel(Editor):
 
     figure = Instance(Figure, ())
 
-    points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])), ArrayClass(value=np.array([0, 0, 1]))])
+    points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])),
+                                     ArrayClass(value=np.array([0, 0, 1]))])
 
     interp_func = Instance(RegularGridInterpolator)
 
@@ -510,7 +680,15 @@ class LineFigureModel(Editor):
 
     use_custom_label = Bool(False)
 
-    def default_traits_view(self):
+    def default_traits_view(self):  # pylint: disable=no-self-use
+        """
+        Creates the default traits View object for the model
+
+        Returns
+        -------
+        default_traits_view : traitsui.view.View
+            The default traits View object for the model
+        """
         return View(
                 Group(
                         Item('figure', editor=MPLFigureEditor(), show_label=False),
@@ -518,16 +696,35 @@ class LineFigureModel(Editor):
         )
 
     def create(self, parent):
-        self.ui = self.edit_traits(kind='subpanel', parent=parent)
+        """
+        Create and set the widget(s) for the Editor.
+
+        Parameters
+        ----------
+        parent
+            The parent widget for the Editor
+        """
+        self.ui = self.edit_traits(kind='subpanel', parent=parent)  # pylint: disable=invalid-name
         self.control = self.ui.control
 
     def destroy(self):
+        """
+        Destroy the Editor and clean up after
+        """
         self.control = None
         if self.ui is not None:
             self.ui.dispose()
         self.ui = None
 
     def export_line(self, file_path):
+        """
+        Export data for line to Excel or CSV file.
+
+        Parameters
+        ----------
+        file_path : os.PathLike
+            Path to output file
+        """
         line_pos, line_data = self._fill_data()
 
         out_df = pd.DataFrame(data=line_data, index=line_pos, columns=['y'])
@@ -538,12 +735,12 @@ class LineFigureModel(Editor):
             out_df.to_csv(file_path)
 
     def _calculate_between_pair(self, point_1, point_2, prev_line_pos=0):
-        x = np.linspace(point_1[0], point_2[0], 1000)
-        y = np.linspace(point_1[1], point_2[1], 1000)
-        z = np.linspace(point_1[2], point_2[2], 1000)
+        x_positions = np.linspace(point_1[0], point_2[0], 1000)
+        y_positions = np.linspace(point_1[1], point_2[1], 1000)
+        z_positions = np.linspace(point_1[2], point_2[2], 1000)
 
         line_pos = np.linspace(0, np.linalg.norm(point_2 - point_1), 1000) + prev_line_pos
-        line_data = self.interp_func((x, y, z))
+        line_data = self.interp_func((x_positions, y_positions, z_positions))
 
         return line_pos, line_data
 
@@ -572,16 +769,26 @@ class LineFigureModel(Editor):
 
         return line_pos, line_data
 
-    @observe(ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True), post_init=True)
+    @observe(
+            ob.trait('points').list_items().trait('value', optional=True).list_items(optional=True),
+            post_init=True)
     def create_plot(self, event):
+        """
+        Create or update the line figure.
+
+        Parameters
+        ----------
+        event
+            The trait change event for points
+        """
         line_pos, line_data = self._fill_data()
 
         self.figure.clear()
 
-        ax = self.figure.add_subplot(111)
-        ax.plot(line_pos, line_data)
-        ax.set_ylabel(self.y_axis_label)
-        ax.set_xlabel(self.x_axis_label)
+        axes = self.figure.add_subplot(111)
+        axes.plot(line_pos, line_data)
+        axes.set_ylabel(self.y_axis_label)
+        axes.set_xlabel(self.x_axis_label)
 
         self.figure.suptitle(self.figure_title)
 
@@ -603,6 +810,9 @@ class LineFigureModel(Editor):
 
 
 class StartPage(Editor):
+    """
+    A Pyface Tasks Editor to hold the opening page
+    """
     model = Instance(HasTraits)
     ui = Instance('traitsui.ui.UI')
 
@@ -611,7 +821,15 @@ class StartPage(Editor):
 
     open_data_file_button = Button(label='Open Data File', style='button')
 
-    def default_traits_view(self):
+    def default_traits_view(self):  # pylint: disable=no-self-use
+        """
+        Creates the default traits View object for the model
+
+        Returns
+        -------
+        default_traits_view : traitsui.view.View
+            The default traits View object for the model
+        """
         return View(
                 Group(
                         Spring(),
@@ -627,10 +845,21 @@ class StartPage(Editor):
         )
 
     def create(self, parent):
-        self.ui = self.edit_traits(kind='subpanel', parent=parent)
+        """
+        Create and set the widget(s) for the Editor.
+
+        Parameters
+        ----------
+        parent
+            The parent widget for the Editor
+        """
+        self.ui = self.edit_traits(kind='subpanel', parent=parent) # pylint: disable=invalid-name
         self.control = self.ui.control
 
     def destroy(self):
+        """
+        Destroy the Editor and clean up after
+        """
         self.control = None
         if self.ui is not None:
             self.ui.dispose()
@@ -638,4 +867,12 @@ class StartPage(Editor):
 
     @observe('open_data_file_button', post_init=True)
     def open(self, event):
+        """
+        Open new data file.
+
+        Parameters
+        ----------
+        event
+            TraitsUI button event.
+        """
         self.task.open()

@@ -1,3 +1,7 @@
+"""
+A custom TraitsUI range editor that is a slider that scrubs through a list of
+mapped values. Displays current value as #.## mm.
+"""
 from types import CodeType
 
 from traits.api import (
@@ -89,6 +93,15 @@ class _RangeEditor(SimpleSliderEditor):
 
 
 class QRangeEditor(BasicEditorFactory):
+    """
+    A custom TraitsUI range editor that is a slider that scrubs through a list of
+    mapped values. Displays current value as #.## mm.
+    """
+
+    # pylint: disable=too-many-instance-attributes, redefined-builtin, too-many-arguments
+    # pylint: disable=access-member-before-definition, attribute-defined-outside-init
+    # pylint: disable=arguments-differ, no-self-use, invalid-name
+
     klass = _RangeEditor
 
     low_label_name = Str()
@@ -170,6 +183,9 @@ class QRangeEditor(BasicEditorFactory):
         """ Performs any initialization needed after all constructor traits
             have been set.
         """
+
+        # pylint: disable=protected-access, eval-used
+
         if handler is not None:
             if isinstance(handler, CTrait):
                 handler = handler.handler
@@ -252,66 +268,6 @@ class QRangeEditor(BasicEditorFactory):
         return (low, high, self.is_float)
 
     # -------------------------------------------------------------------------
-    #  Property getters.
-    # -------------------------------------------------------------------------
-    # def _get_simple_editor_class(self):
-    # """ Returns the editor class to use for a simple style.
-    # The type of editor depends on the type and extent of the range being
-    # edited:
-    # * One end of range is unspecified: RangeTextEditor
-    # * **mode** is specified and not 'auto': editor corresponding to **mode**
-    # * Floating point range with extent > 100: LargeRangeSliderEditor
-    # * Integer range or floating point range with extent <= 100:
-    # SimpleSliderEditor
-    # * All other cases: SimpleSpinEditor
-    # """
-    # low, high, is_float = self._low_value, self._high_value, self.is_float
-
-    # if (low is None) or (high is None):
-    # return toolkit_object("range_editor:RangeTextEditor")
-
-    # if (not is_float) and (abs(high - low) > 1000000000):
-    # return toolkit_object("range_editor:RangeTextEditor")
-
-    # if self.mode != "auto":
-    # return toolkit_object("range_editor:SimpleEditorMap")[self.mode]
-
-    # if is_float and (abs(high - low) > 100):
-    # return toolkit_object("range_editor:LargeRangeSliderEditor")
-
-    # if is_float or (abs(high - low) <= 100):
-    # return toolkit_object("range_editor:SimpleSliderEditor")
-
-    # return toolkit_object("range_editor:SimpleSpinEditor")
-
-    # def _get_custom_editor_class(self):
-    # """ Creates a custom style of range editor
-    # The type of editor depends on the type and extent of the range being
-    # edited:
-    # * One end of range is unspecified: RangeTextEditor
-    # * **mode** is specified and not 'auto': editor corresponding to **mode**
-    # * Floating point range: Same as "simple" style
-    # * Integer range with extent > 15: Same as "simple" style
-    # * Integer range with extent <= 15: CustomEnumEditor
-    # """
-    # low, high, is_float = self._low_value, self._high_value, self.is_float
-    # if (low is None) or (high is None):
-    # return toolkit_object("range_editor:RangeTextEditor")
-
-    # if self.mode != "auto":
-    # return toolkit_object("range_editor:CustomEditorMap")[self.mode]
-
-    # if is_float or (abs(high - low) > 15):
-    # return self.simple_editor_class
-
-    # return toolkit_object("range_editor:CustomEnumEditor")
-
-    # def _get_text_editor_class(self):
-    # """Returns the editor class to use for a text style.
-    # """
-    # return toolkit_object("range_editor:RangeTextEditor")
-
-    # -------------------------------------------------------------------------
     #  'Editor' factory methods:
     # -------------------------------------------------------------------------
 
@@ -323,7 +279,7 @@ class QRangeEditor(BasicEditorFactory):
         self._low_value, self._high_value, self.is_float = self._get_low_high(
                 ui
         )
-        return super(QRangeEditor, self).simple_editor(
+        return super().simple_editor(
                 ui, object, name, description, parent
         )
 
@@ -335,6 +291,6 @@ class QRangeEditor(BasicEditorFactory):
         self._low_value, self._high_value, self.is_float = self._get_low_high(
                 ui
         )
-        return super(QRangeEditor, self).custom_editor(
+        return super().custom_editor(
                 ui, object, name, description, parent
         )

@@ -1,3 +1,7 @@
+"""
+Dock Panes for the S4L Visualization application.
+"""
+# pylint: disable=unused-argument, too-many-instance-attributes
 import numpy as np
 from numpy import ma
 from pyface.tasks.api import TraitsDockPane
@@ -12,6 +16,10 @@ from .util import ArrayClass
 
 
 class CustomDockPane(TraitsDockPane):
+    """
+    Overridden to fix error when dragging a dock pane
+    """
+    # pylint: disable=attribute-defined-outside-init
     def _receive_dock_area(self, area):
         with self._signal_context():
             if int(area) in INVERSE_AREA_MAP.keys():
@@ -69,6 +77,14 @@ class PlaneAttributes(CustomDockPane):
 
     @observe('plane_type', post_init=True)
     def change_plane_type(self, event):
+        """
+        Change normal vector when new plane_type is selected.
+
+        Parameters
+        ----------
+        event
+            The trait change event for plane_type
+        """
         if event.new == 'Normal to X':
             self.normal = np.array([1, 0, 0])
             self.dir_idx = 0
@@ -84,6 +100,14 @@ class PlaneAttributes(CustomDockPane):
 
     @observe('fields_model.masked_gr_z')
     def update_slider_bounds(self, event):
+        """
+        Update range slider when grid points are updated.
+
+        Parameters
+        ----------
+        event
+            The trait change event for fields_model.masked_gr_z
+        """
         max_ind = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data),
                                    self.fields_model.masked_grid_data.shape)
         if self.plane_type == 'Normal to X':
@@ -109,55 +133,72 @@ class PlaneAttributes(CustomDockPane):
 
     @observe('slice_coord_index', post_init=True)
     def update_coord(self, event):
+        """
+        Update origin when slider is changed.
+
+        Parameters
+        ----------
+        event
+            The trait change event for slice_coord_index
+        """
         coord = self.coord_map[event.new]
 
-        if (self.plane_type == 'Normal to Z' or self.plane_type == 'Arbitrary Plane') and self.origin[2] != coord:
+        if (self.plane_type == 'Normal to Z' or self.plane_type == 'Arbitrary Plane') and\
+                self.origin[2] != coord:
             self.origin = np.array([self.origin[0], self.origin[1], coord])
         elif self.plane_type == 'Normal to Y' and self.origin[1] != coord:
             self.origin = np.array([self.origin[0], coord, self.origin[2]])
         elif self.plane_type == 'Normal to X' and self.origin[0] != coord:
             self.origin = np.array([coord, self.origin[1], self.origin[2]])
 
-    def default_traits_view(self):
+    def default_traits_view(self): # pylint: disable=no-self-use
+        """
+        Creates the default traits View object for the model
+
+        Returns
+        -------
+        default_traits_view : traitsui.view.View
+            The default traits View object for the model
+        """
         return View(
-            Group(
                 Group(
-                    Item(
-                        'slice_coord_index',
-                        label=self.coord_label,
-                        editor=QRangeEditor(
-                            low_name='coord_low_index',
-                            high_name='coord_high_index',
-                            low_label_name='low_label',
-                            high_label_name='high_label',
-                            map_to_values_name='coord_map',
-                            mode='slider',
-                            is_float=False,
+                        Group(
+                                Item(
+                                        'slice_coord_index',
+                                        label=self.coord_label,
+                                        editor=QRangeEditor(
+                                                low_name='coord_low_index',
+                                                high_name='coord_high_index',
+                                                low_label_name='low_label',
+                                                high_label_name='high_label',
+                                                map_to_values_name='coord_map',
+                                                mode='slider',
+                                                is_float=False,
+                                        ),
+                                        padding=15,
+                                ),
                         ),
-                        padding=15,
-                    ),
-                ),
-                Item(
-                    'plane_type',
-                    editor=EnumEditor(
-                        values={
-                            'Normal to X': '1:Normal to X',
-                            'Normal to Y': '2:Normal to Y',
-                            'Normal to Z': '3:Normal to Z',
-                            'Arbitrary Plane': '4:Arbitrary Plane',
-                        },
-                        format_func=str,
-                        cols=4
-                    ),
-                    style='custom',
-                    show_label=False
-                ),
-                Group(
-                    Item('normal', editor=ArrayEditor(width=-60)),
-                    Item('origin', editor=ArrayEditor(width=-60)),
-                    visible_when='plane_type == "Arbitrary Plane"'
+                        Item(
+                                'plane_type',
+                                editor=EnumEditor(
+                                        values={
+                                                'Normal to X':     '1:Normal to X',
+                                                'Normal to Y':     '2:Normal to Y',
+                                                'Normal to Z':     '3:Normal to Z',
+                                                'Arbitrary Plane': '4:Arbitrary Plane',
+                                        },
+                                        format_func=str,
+                                        cols=4
+                                ),
+                                style='custom',
+                                show_label=False
+                        ),
+                        Group(
+                                Item('normal', editor=ArrayEditor(width=-60)),
+                                Item('origin', editor=ArrayEditor(width=-60)),
+                                visible_when='plane_type == "Arbitrary Plane"'
+                        )
                 )
-            )
         )
 
 
@@ -182,7 +223,14 @@ class LineAttributes(CustomDockPane):
     sort_points_button = Button(label="Sort", style='button', visible_when='len(points) > 2')
 
     @observe('sort_points_button', post_init=True)
-    def update_points(self, event):
+    def sort_points(self, event):
+        """
+        Sorts point starting from first point by least distance to previous point.
+        Parameters
+        ----------
+        event
+            The trait change handler for sort_points_button
+        """
         if len(self.points) > 0:
             points = [val if val else ArrayClass() for val in self.points]
             distances = np.zeros((len(points), len(points)))
@@ -202,11 +250,14 @@ class LineAttributes(CustomDockPane):
 
     @observe('points.items', post_init=True)
     def _new_point_added(self, event):
-        points = [val if val is not None else ArrayClass(value=np.array([0, 0, 0])) for val in self.points]
+        points = [val if val is not None else ArrayClass(value=np.array([0, 0, 0])) for val in
+                  self.points]
         if points != self.points:
             self.points = points
 
     view = View(
-        Item('sort_points_button', show_label=False),
-        Item('points', editor=ListEditor(editor=InstanceEditor(), scrollable=False, style='custom'), show_label=False)
+            Item('sort_points_button', show_label=False),
+            Item('points',
+                 editor=ListEditor(editor=InstanceEditor(), scrollable=False, style='custom'),
+                 show_label=False)
     )

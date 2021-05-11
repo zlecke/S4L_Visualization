@@ -1,3 +1,6 @@
+"""
+A Pyface Task for the S4L Visualization application.
+"""
 from pyface.api import (
     FileDialog,
     OK,
@@ -25,7 +28,7 @@ from .s4l_models import EMFields, Mayavi3DScene, SliceFigureModel, LineFigureMod
 from .s4l_panes import PlaneAttributes, LineAttributes
 
 
-class S4LVisualizationTask(Task):
+class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
     """ A task for visualizing Sim4Life EM fields from scES simulations
     """
 
@@ -39,7 +42,7 @@ class S4LVisualizationTask(Task):
     line_attributes_pane = Instance(LineAttributes)
 
     active_editor = Property(
-        Instance(IEditor), depends_on="editor_area.active_editor"
+            Instance(IEditor), depends_on="editor_area.active_editor"
     )
 
     editor_area = Instance(IEditorAreaPane)
@@ -47,6 +50,9 @@ class S4LVisualizationTask(Task):
     start_page = Instance(StartPage)
     fields_model = Instance(EMFields)
     mayavi_scene = Instance(Mayavi3DScene)
+
+    slice_figure = Instance(SliceFigureModel)
+    line_figure = Instance(LineFigureModel)
 
     model_initialized = Bool(False)
 
@@ -72,39 +78,39 @@ class S4LVisualizationTask(Task):
                                           enabled_name='model_initialized')
 
     menu_bar = SMenuBar(
-        SMenu(
-            TaskAction(name="Open...", method="open", accelerator="Ctrl+O"),
             SMenu(
-                TaskAction(name="Export Slice", method="export_slice"),
-                TaskAction(name="Export Line", method="export_line"),
-                id="File.Export",
-                name="&Export",
+                    TaskAction(name="Open...", method="open", accelerator="Ctrl+O"),
+                    SMenu(
+                            TaskAction(name="Export Slice", method="export_slice"),
+                            TaskAction(name="Export Line", method="export_line"),
+                            id="File.Export",
+                            name="&Export",
+                    ),
+                    id="File",
+                    name="&File",
             ),
-            id="File",
-            name="&File",
-        ),
-        SMenu(
             SMenu(
-                DockPaneToggleGroup(),
-                id='View.Panes',
-                name='&Panes'
+                    SMenu(
+                            DockPaneToggleGroup(),
+                            id='View.Panes',
+                            name='&Panes'
+                    ),
+                    toggle_model_action,
+                    toggle_scale_action,
+                    toggle_line_cross_action,
+                    id="View",
+                    name="&View"
             ),
-            toggle_model_action,
-            toggle_scale_action,
-            toggle_line_cross_action,
-            id="View",
-            name="&View"
-        ),
-        SMenu(
-            new_cord_action,
             SMenu(
-                FieldSelectionGroup(),
-                id='Edit.Fields',
-                name='&Choose Field'
+                    new_cord_action,
+                    SMenu(
+                            FieldSelectionGroup(),
+                            id='Edit.Fields',
+                            name='&Choose Field'
+                    ),
+                    id='Edit',
+                    name='&Edit',
             ),
-            id='Edit',
-            name='&Edit',
-        ),
     )
 
     # ------------------------------------------------------------------------
@@ -112,7 +118,7 @@ class S4LVisualizationTask(Task):
     # ------------------------------------------------------------------------
 
     @observe('editor_area.active_tabwidget')
-    def _update_tabwidgets(self, event):
+    def _update_tabwidgets(self, event): # pylint: disable=unused-argument
         try:
             self.editor_area.active_tabwidget.setTabsClosable(False)
         except AttributeError:
@@ -150,9 +156,10 @@ class S4LVisualizationTask(Task):
         """ Shows a dialog to open a new data source.
         """
         dialog = FileDialog(
-            title='Choose Data File',
-            parent=self.window.control,
-            wildcard=FileDialog.create_wildcard('Data Files', ['*.mat']) + FileDialog.WILDCARD_ALL
+                title='Choose Data File',
+                parent=self.window.control,
+                wildcard=FileDialog.create_wildcard('Data Files',
+                                                    ['*.mat']) + FileDialog.WILDCARD_ALL
         )
         if dialog.open() == OK:
             if not self.model_initialized:
@@ -162,12 +169,12 @@ class S4LVisualizationTask(Task):
         """ Exports data for current slice
         """
         dialog = FileDialog(
-            title='Export Slice Plane',
-            action='save as',
-            parent=self.window.control,
-            wildcard='' + FileDialog.create_wildcard('Excel Files', ['*.xlsx'])
-                        + FileDialog.create_wildcard('CSV Files', ['*.csv', '*.txt'])
-                        + FileDialog.WILDCARD_ALL
+                title='Export Slice Plane',
+                action='save as',
+                parent=self.window.control,
+                wildcard='' + FileDialog.create_wildcard('Excel Files', ['*.xlsx'])
+                         + FileDialog.create_wildcard('CSV Files', ['*.csv', '*.txt'])
+                         + FileDialog.WILDCARD_ALL
         )
         if dialog.open() == OK:
             self.slice_figure.export_slice(dialog.path)
@@ -176,36 +183,52 @@ class S4LVisualizationTask(Task):
         """ Exports data for current line
         """
         dialog = FileDialog(
-            title='Export Line Data',
-            action='save as',
-            parent=self.window.control,
-            wildcard='' + FileDialog.create_wildcard('Excel Files', ['*.xlsx'])
-                     + FileDialog.create_wildcard('CSV Files', ['*.csv', '*.txt'])
-                     + FileDialog.WILDCARD_ALL
+                title='Export Line Data',
+                action='save as',
+                parent=self.window.control,
+                wildcard='' + FileDialog.create_wildcard('Excel Files', ['*.xlsx'])
+                         + FileDialog.create_wildcard('CSV Files', ['*.csv', '*.txt'])
+                         + FileDialog.WILDCARD_ALL
         )
         if dialog.open() == OK:
             self.line_figure.export_line(dialog.path)
 
     def toggle_full_model(self):
+        """
+        Toggles between showing the full spinal cord model and showing only below the cut plane.
+        """
         self.mayavi_scene.show_full_model = not self.mayavi_scene.show_full_model
 
     def toggle_log_scale(self):
+        """
+        Toggles between using a logarithmic scale and a linear scale.
+        """
         self.mayavi_scene.log_scale = not self.mayavi_scene.log_scale
         self.slice_figure.log_scale = not self.slice_figure.log_scale
 
     def toggle_line_cross_marker(self):
+        """
+        Toggle visibility of the line cross marker on the slice figure.
+        """
         self.slice_figure.draw_cross = not self.slice_figure.draw_cross
 
     def change_cord_model(self):
+        """
+        Change the spinal cord model file used for the 3D display.
+        """
         dialog = FileDialog(
-            title='Choose Spinal Cord Model',
-            parent=self.window.control,
-            wildcard=FileDialog.create_wildcard('VTK Model', ['*.vtk']) + FileDialog.WILDCARD_ALL
+                title='Choose Spinal Cord Model',
+                parent=self.window.control,
+                wildcard=FileDialog.create_wildcard('VTK Model',
+                                                    ['*.vtk']) + FileDialog.WILDCARD_ALL
         )
         if dialog.open() == OK:
             self.mayavi_scene.csf_model = dialog.path
 
     def reset_camera(self):
+        """
+        Set the camera for the Mayavi scene to a pre-determined perspective.
+        """
         self.mayavi_scene.initialize_camera()
 
     # ------------------------------------------------------------------------
@@ -247,7 +270,8 @@ class S4LVisualizationTask(Task):
         self.editor_area.active_tabwidget.setTabsClosable(False)
         self.activated()
 
-        self.slice_figure = SliceFigureModel(fields_model=self.fields_model, mayavi_scene=self.mayavi_scene)
+        self.slice_figure = SliceFigureModel(fields_model=self.fields_model,
+                                             mayavi_scene=self.mayavi_scene)
 
         self.slice_figure.create_plot()
 
@@ -272,12 +296,12 @@ class S4LVisualizationTask(Task):
             self.editor_area.active_tabwidget.parent().collapse()
 
         layout = Splitter(
-            Tabbed(
-                PaneItem(1),
-                PaneItem(2),
-                active_tab=0
-            ),
-            Tabbed(PaneItem(0), active_tab=0),
+                Tabbed(
+                        PaneItem(1),
+                        PaneItem(2),
+                        active_tab=0
+                ),
+                Tabbed(PaneItem(0), active_tab=0),
         )
 
         self.editor_area.set_layout(layout)
@@ -291,7 +315,7 @@ class S4LVisualizationTask(Task):
         self.model_initialized = True
 
     @observe('window:closing')
-    def _on_close(self, event):
+    def _on_close(self, event): # pylint: disable=no-self-use
         event.veto = False
 
     # ------------------------------------------------------------------------
