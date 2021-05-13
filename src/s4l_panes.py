@@ -34,45 +34,55 @@ class PlaneAttributes(CustomDockPane):
     # TaskPane interface.
     # ------------------------------------------------------------------------
 
+    #: The dock pane's identifier.
     id = 's4l.plane_attributes'
+
+    #: The dock pane's user-visible name.
     name = 'Plane Attributes'
 
     # ------------------------------------------------------------------------
     # PlaneAttributes interface.
     # ------------------------------------------------------------------------
 
+    #: The :py:class:`EMFields` instance containing the field data/
     fields_model = Instance(EMFields)
 
-    # Index of plane location along the slicing direction
+    #: Index of plane location along the slicing direction
     slice_coord_index = Int(0)
 
-    # Index of slicing direction (x=0, y=1, z=2)
+    #: Index of slicing direction (x=0, y=1, z=2).
     dir_idx = Int(2)
 
-    # Indices of min and max values to show on slider
+    #: Index of min value to show on slider.
     coord_low_index = Int(0)
+
+    #: Index of max value to show on slider.
     coord_high_index = Int(0)
 
-    # Map of coord indices to coord labels
+    #: Map of coord indices to coord labels.
     coord_map = Array(value=np.array([0]))
 
-    # Label of slicing direction
+    #: Label of slicing direction.
     coord_label = Str('Z')
 
-    # Labels of min and max values on slider
+    #: Label of min value on slider.
     low_label = Str()
+
+    #: Label of max value on slider.
     high_label = Str()
 
-    # Plane type
+    #: Type of plane. One of
+    #: {"Normal to X", "Normal to Y", "Normal to Z", "Arbitrary Plane"}
+    #: Defaults to "Normal to Z".
     plane_type = Enum('Normal to Z',
                       'Normal to X',
                       'Normal to Y',
                       'Arbitrary Plane')
 
-    # Normal vector of plane
+    #: Normal vector of plane.
     normal = Array(value=np.array([0, 0, 1]), dtype=np.float)
 
-    # Origin point of plane
+    #: Origin point of plane.
     origin = Array(value=np.array([0, 0, 0]), dtype=np.float)
 
     @observe('plane_type', post_init=True)
@@ -82,7 +92,7 @@ class PlaneAttributes(CustomDockPane):
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for plane_type
         """
         if event.new == 'Normal to X':
@@ -105,7 +115,7 @@ class PlaneAttributes(CustomDockPane):
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for fields_model.masked_gr_z
         """
         max_ind = np.unravel_index(np.nanargmax(self.fields_model.masked_grid_data),
@@ -138,7 +148,7 @@ class PlaneAttributes(CustomDockPane):
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for slice_coord_index
         """
         coord = self.coord_map[event.new]
@@ -153,11 +163,11 @@ class PlaneAttributes(CustomDockPane):
 
     def default_traits_view(self): # pylint: disable=no-self-use
         """
-        Creates the default traits View object for the model
+        Create the default traits View object for the model
 
         Returns
         -------
-        default_traits_view : traitsui.view.View
+        default_traits_view : :py:class:`traitsui.view.View`
             The default traits View object for the model
         """
         return View(
@@ -210,26 +220,32 @@ class LineAttributes(CustomDockPane):
     # TaskPane interface.
     # ------------------------------------------------------------------------
 
+    #: The dock pane's identifier.
     id = 's4l.line_attributes'
+
+    #: The dock pane's user-visible name.
     name = 'Line Attributes'
 
     # ------------------------------------------------------------------------
     # LineAttributes interface.
     # ------------------------------------------------------------------------
 
+    #: The list of points describing the line for the line figure.
     points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])),
                                      ArrayClass(value=np.array([0, 0, 1]))])
 
+    #: Button to sort list of points.
     sort_points_button = Button(label="Sort", style='button', visible_when='len(points) > 2')
 
     @observe('sort_points_button', post_init=True)
     def sort_points(self, event):
         """
-        Sorts point starting from first point by least distance to previous point.
+        Sort points starting from first point by least distance to previous point.
+
         Parameters
         ----------
-        event
-            The trait change handler for sort_points_button
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
+            The trait change handler for sort_points_button.
         """
         if len(self.points) > 0:
             points = [val if val else ArrayClass() for val in self.points]

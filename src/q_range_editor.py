@@ -19,13 +19,27 @@ from traitsui.qt4.basic_editor_factory import BasicEditorFactory
 from traitsui.qt4.range_editor import SimpleSliderEditor
 from traitsui.view import View
 
+from traitsui.api import BasicEditorFactory as UIBasicEditorFactory, RangeEditor as UIRangeEditor
 
-class _RangeEditor(SimpleSliderEditor):
+
+class _RangeEditor(SimpleSliderEditor, UIRangeEditor):
+
+    #: Label for low end of range.
     low_label = Str()
+
+    #: Label for high end of range.
     high_label = Str()
+
+    #: The object trait containing the label for the low end of the range.
     low_label_name = Str()
+
+    #: The object trait containing the label for the high end of the range.
     high_label_name = Str()
+
+    #: The object trait containing the map from indices to values.
     map_to_values_name = Str()
+
+    #: The map from indices to values.
     map_to_values = Any()
 
     def init(self, parent):
@@ -82,6 +96,13 @@ class _RangeEditor(SimpleSliderEditor):
             self._label_hi.setText(high_label)
 
     def update_editor(self):
+        """
+        Overridden to set a custom label for the current value.
+
+        See Also
+        --------
+        :py:function:`traitsui.qt4.range_editor.SimpleSliderEditor.update_editor`
+        """
         super().update_editor()
         if self.map_to_values is not None:
             self.control.text.setText('{:.2f} mm'.format(self.map_to_values[self.value]))
@@ -92,7 +113,7 @@ class _RangeEditor(SimpleSliderEditor):
             self.control.text.setText('{:.2f} mm'.format(self.map_to_values[self.value]))
 
 
-class QRangeEditor(BasicEditorFactory):
+class QRangeEditor(BasicEditorFactory ,UIBasicEditorFactory):
     """
     A custom TraitsUI range editor that is a slider that scrubs through a list of
     mapped values. Displays current value as #.## mm.
@@ -104,8 +125,13 @@ class QRangeEditor(BasicEditorFactory):
 
     klass = _RangeEditor
 
+    #: The object trait containing the label for the low value in range
     low_label_name = Str()
+
+    #: The object trait containing the label for the high value in range
     high_label_name = Str()
+
+    #: The object trait containing the map from indices to values
     map_to_values_name = Str()
 
     # -------------------------------------------------------------------------
@@ -127,7 +153,6 @@ class QRangeEditor(BasicEditorFactory):
     #: Label for the high end of the range
     high_label = Str()
 
-    #: FIXME: This is supported only in the wx backend so far.
     #: The width of the low and high labels
     label_width = Int()
 
@@ -272,9 +297,24 @@ class QRangeEditor(BasicEditorFactory):
     # -------------------------------------------------------------------------
 
     def simple_editor(self, ui, object, name, description, parent):
-        """ Generates an editor using the "simple" style.
+        """
+        Generate an editor using the "simple" style.
+
         Overridden to set the values of the _low_value, _high_value and
         is_float traits.
+
+        Parameters
+        ----------
+        ui : traitsui.ui.UI
+            TraitsUI UI instance for the editor
+        object : traits.trait_types.Instance(traits.has_traits.HasTraits)
+            The object this editor is editing (e.g. object.link1.link2)
+        name : str
+            The name of the trait this editor is editing (e.g. 'value')
+        description : str
+            Text description of the object trait being edited
+        parent : toolkit control
+            The parent toolkit object of the editor's toolkit objects
         """
         self._low_value, self._high_value, self.is_float = self._get_low_high(
                 ui
@@ -284,9 +324,23 @@ class QRangeEditor(BasicEditorFactory):
         )
 
     def custom_editor(self, ui, object, name, description, parent):
-        """ Generates an editor using the "custom" style.
+        """ Generate an editor using the "custom" style.
+
         Overridden to set the values of the _low_value, _high_value and
         is_float traits.
+
+        Parameters
+        ----------
+        ui : traitsui.ui.UI
+            TraitsUI UI instance for the editor
+        object : traits.trait_types.Instance(traits.has_traits.HasTraits)
+            The object this editor is editing (e.g. object.link1.link2)
+        name : str
+            The name of the trait this editor is editing (e.g. 'value')
+        description : str
+            Text description of the object trait being edited
+        parent : toolkit control
+            The parent toolkit object of the editor's toolkit objects
         """
         self._low_value, self._high_value, self.is_float = self._get_low_high(
                 ui

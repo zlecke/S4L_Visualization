@@ -13,12 +13,12 @@ from mayavi.filters.data_set_clipper import DataSetClipper
 from mayavi.modules.surface import Surface
 from mayavi.sources.array_source import ArraySource
 from mayavi.tools.mlab_scene_model import MlabSceneModel
-from pyface.tasks.api import Editor
+from pyface.tasks.i_editor import IEditor, MEditor as Editor
 from scipy.interpolate import RegularGridInterpolator
 from scipy.io import loadmat
 from traits.api import (
     HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
-    DelegatesTo,
+    DelegatesTo, provides
 )
 from traitsui.api import View, Item, Group, Spring
 from tvtk.pyface.scene_editor import SceneEditor
@@ -44,23 +44,40 @@ class EMFields(HasTraits):
 
     # pylint: disable=too-many-instance-attributes
 
-    # Path to field data file
+    #: Path to field data file
     data_path = File()
 
+    #: Dictionary of data in `data_path`
     data_dict = Dict()
-    field_keys = ListStr()
-    selected_field_key = Str
 
+    #: List of field keys that can be displayed
+    field_keys = ListStr()
+
+    #: The currently selected field key
+    selected_field_key = Str()
+
+    #: X values of grid in data file
     x_vals = Array()
+
+    #: Y values of grid in data file
     y_vals = Array()
+
+    #: Z values of grid in data file
     z_vals = Array()
 
+    #: Raw data of currently selected field from data file
     data_arr = Array()
 
+    #: X values of regular grid for current field
     masked_gr_x = Array()
+
+    #: Y values of regular grid for current field
     masked_gr_y = Array()
+
+    #: Z values of regular grid for current field
     masked_gr_z = Array()
 
+    #: Data on regular grid for current field
     masked_grid_data = Array()
 
     @observe('data_path')
@@ -98,8 +115,8 @@ class EMFields(HasTraits):
 
         Parameters
         ----------
-        event
-            Trait change event for selected_field_key
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
+            The trait change event for selected_field_key
         """
         data_x, data_y, data_z = abs(self.data_dict[self.selected_field_key]).T
 
@@ -148,52 +165,78 @@ class EMFields(HasTraits):
         self.masked_gr_z = masked_gr_z[:, ~masky, :]
 
 
+@provides(IEditor)
 class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     """
     A Pyface Tasks Editor for holding a Mayavi scene
     """
+    #: The model object to view. If not specified, the editor is used instead.
     model = Instance(HasTraits)
+
+    #: The UI object associated with the Traits view, if it has been
+    #: constructed.
     ui = Instance("traitsui.ui.UI")
 
+    #: The editor's user-visible name.
     name = Str('3D View')
 
+    #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
 
-    # Normal vector of plane
+    #: Normal vector of the cut plane
     normal = Array(value=np.array([0, 0, 1]))
 
-    # Origin point of plane
+    #: Origin point of the cut plane
     origin = Array(value=np.array([0, 0, 0]))
 
+    #: The :py:class:`mayavi.core.ui.api.MlabSceneModel` instance
+    #: containing the 3D plot.
     scene = Instance(MlabSceneModel, ())
 
+    #: The mayavi pipeline object containing the cut plane.
     data_set_clipper = Instance(DataSetClipper)
 
+    #: The list of points describing the line for the line figure.
     points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])),
                                      ArrayClass(value=np.array([0, 0, 1]))])
-    line = Instance(Surface)
-    line_points = Any()
 
+    #: The 3D surface object for the line.
+    line = Instance(Surface)
+
+    #: The field data source.
     src = Instance(ArraySource)
+
+    #: The field cut plane.
     cut = Instance(CutPlane)
+
+    #: The 3D surface for the field data.
     surf = Instance(Surface)
 
+    #: The path to the spinal cord model file.
     csf_model = File(value=default_csf_model)
+
+    #: The mayavi file reader object to read the spinal cord model file.
     csf_model_reader = Any()
+
+    #: The 3D surface object for the cut spinal cord model.
     csf_surface = Instance(Surface)
 
+    #: Show the full spinal cord model?
     show_full_model = Bool(False)
+
+    #: The 3D surface object for the full spinal cord model.
     full_csf_surface = Instance(Surface)
 
+    #: Use a logarithmic scale for the field data?
     log_scale = Bool(True)
 
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
-        Creates the default traits View object for the model
+        Create the default traits View object for the model
 
         Returns
         -------
-        default_traits_view : traitsui.view.View
+        default_traits_view : :py:class:`traitsui.view.View`
             The default traits View object for the model
         """
         return View(Item('scene', show_label=False, editor=SceneEditor(scene_class=MayaviScene)))
@@ -204,7 +247,7 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
         Parameters
         ----------
-        parent
+        parent : toolkit-specific widget
             The parent widget for the Editor
         """
         self.ui = self.edit_traits(kind='subpanel', parent=parent)  # pylint: disable=invalid-name
@@ -222,11 +265,11 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     @observe('log_scale', post_init=True)
     def toggle_log_scale(self, event):
         """
-        Toggles between using a logarithmic scale and a linear scale
+        Toggle between using a logarithmic scale and a linear scale
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for log_scale
         """
         if event.new:
@@ -242,7 +285,7 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for origin
         """
         if hasattr(self.data_set_clipper, 'widget'):
@@ -257,7 +300,7 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for normal
         """
         if hasattr(self.data_set_clipper, 'widget'):
@@ -268,11 +311,12 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     @observe('show_full_model', post_init=True)
     def toggle_full_model(self, event):
         """
-        Toggles between showing the full spinal cord model and showing only below the cut plane.
+        Toggle between showing the full spinal cord model and showing only below the cut plane.
+
         Parameters
         ----------
-        event
-            The trait change event for show_full_model
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
+            The trait change event for show_full_model.
         """
         self.csf_surface.visible = not event.new
         self.full_csf_surface.visible = event.new
@@ -286,7 +330,7 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for csf_model
         """
         if self.csf_model_reader is not None:
@@ -299,7 +343,7 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for scene.activated
         """
         if self.csf_surface is not None:
@@ -370,10 +414,11 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     def draw_line(self, event):
         """
         Create or update the line described by the points in :ref:`line-attributes`.
+
         Parameters
         ----------
-        event
-            The trait change event for points
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
+            The trait change event for points.
         """
         if None in event.new and len(event.old) == len(event.new) and None not in event.old:
             self.points = event.old
@@ -421,38 +466,73 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
             self.surf.parent.scalar_lut_manager.lut.nan_color = np.array([0, 0, 0, 0])
 
 
+@provides(IEditor)
 class SliceFigureModel(Editor):
     """
     A Pyface Tasks Editor to hold the slice figure.
     """
+    #: The model object to view. If not specified, the editor is used instead.
     model = Instance(HasTraits)
+
+    #: The UI object associated with the Traits view, if it has been
+    #: constructed.
     ui = Instance("traitsui.ui.UI")
 
+    #: The editor's user-visible name.
     name = Str("Slice Plane")
 
+    #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
+
+    #: The :py:class:`Mayavi3DScene` instance containing the 3D plot.
     mayavi_scene = Instance(Mayavi3DScene)
 
+    #: The :py:class:`matplotlib.figure.Figure` containing the slice figure.
     figure = Instance(Figure, ())
 
+    #: Use a logarithmic scale for the field data?
     log_scale = Bool(True)
 
+    #: Matplotlib colormap.
     mycmap = Any()
+
+    #: :py:class:`matplotlib.colors.Normalize` instance for the
+    #: field data.
     norm = Any()
+
+    #: :py:class:`matplotlib.collections.QuadMesh` containing the plot data.
     pcm = Any()
+
+    #: :py:class:`matplotlib.colorbar.Colorbar` containing the figure's
+    #: colorbar.
     clb = Any()
 
+    #: Draw the line cross marker?
     draw_cross = Bool(True)
+
+    #: The list of points describing the line for the line figure.
     points = DelegatesTo('mayavi_scene')
+
+    #: List of :py:class:`matplotlib.lines.Line2D` representing the line
+    #: cross marker
     line_cross = Any()
+
+    #: The slice figure title.
+    figure_title = Str()
+
+    #: Data label.
+    data_label = Str()
+
+    #: Use user-input labels?
+    use_custom_label = Bool(False)
 
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
-        Creates the default traits View object for the model
+        Create the default traits View object for the model
 
         Returns
         -------
-        default_traits_view : traitsui.view.View
+        default_traits_view : :py:class:`traitsui.view.View`
             The default traits View object for the model
         """
         return View(
@@ -467,7 +547,7 @@ class SliceFigureModel(Editor):
 
         Parameters
         ----------
-        parent
+        parent : toolkit-specific widget
             The parent widget for the Editor
         """
         self.ui = self.edit_traits(kind='subpanel', parent=parent)  # pylint: disable=invalid-name
@@ -503,11 +583,11 @@ class SliceFigureModel(Editor):
     @observe('log_scale', post_init=True)
     def toggle_log_scale(self, event):
         """
-        Toggles between using a logarithmic scale and a linear scale
+        Toggle between using a logarithmic scale and a linear scale
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for log_scale
         """
         if event.new:
@@ -561,13 +641,31 @@ class SliceFigureModel(Editor):
         axes.set_xlabel('X (mm)')
         axes.set_ylabel('Y (mm)')
 
-        axes.set_title('Current Density Magnitude')
+        axes.set_title(self.figure_title)
 
         self.clb = self.figure.colorbar(cm.ScalarMappable(norm=self.norm, cmap=self.mycmap),
                                         ax=axes)
-        self.clb.set_label('Current Density ($A/m^2$)', rotation=270, labelpad=15)
+        self.clb.set_label(self.data_label, rotation=270, labelpad=15)
 
         self.figure.canvas.draw()
+
+    @observe('fields_model.selected_field_key')
+    def _set_figure_labels(self, event):
+        if not self.use_custom_label:
+            if self.fields_model.selected_field_key.startswith('J'):
+                self.figure_title = 'Current Density Magnitude'
+                self.data_label = 'Current Density ($A/m^2$)'
+            elif self.fields_model.selected_field_key.startswith('EM_E'):
+                self.figure_title = 'Electric Field Magnitude'
+                self.data_label = 'Electric Field ($V/m$)'
+            elif self.fields_model.selected_field_key.startswith('D'):
+                self.figure_title = 'Displacement Flux Density Magnitude'
+                self.data_label = 'Displacement Flux Density ($C/m^2$)'
+
+            if self.line_cross is not None:
+                self.update_line_cross(event=event)
+            if self.pcm is not None:
+                self.update_plot(event=event)
 
     def _calculate_plane(self):
         dataset = self.mayavi_scene.cut.outputs[0].output
@@ -594,7 +692,7 @@ class SliceFigureModel(Editor):
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for the cut plane origin or normal
         """
         true_x, true_y, true_data = self._calculate_plane()
@@ -605,6 +703,10 @@ class SliceFigureModel(Editor):
         self.pcm.remove()
         self.pcm = axes.pcolormesh(true_x, true_y, true_data, shading='nearest', cmap=self.mycmap,
                                    norm=self.norm)
+
+        axes.set_title(self.figure_title)
+        self.clb.set_label(self.data_label, rotation=270, labelpad=15)
+
         canvas = self.figure.canvas
         if canvas is not None:
             canvas.draw()
@@ -619,7 +721,7 @@ class SliceFigureModel(Editor):
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for draw_cross or points
         """
         if not self.draw_cross and self.line_cross is not None:
@@ -656,37 +758,54 @@ class SliceFigureModel(Editor):
         self.figure.canvas.draw()
 
 
+@provides(IEditor)
 class LineFigureModel(Editor):
     """
     A Pyface Traits Editor to hold the line figure.
     """
+    #: The model object to view. If not specified, the editor is used instead.
     model = Instance(HasTraits)
+
+    #: The UI object associated with the Traits view, if it has been
+    #: constructed.
     ui = Instance("traitsui.ui.UI")
 
+    #: The editor's user-visible name.
     name = Str("Line Plot")
 
+    #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
 
+    #: The :py:class:`matplotlib.figure.Figure` containing the line figure.
     figure = Instance(Figure, ())
 
+    #: The list of points describing the line for the line figure.
     points = List(ArrayClass, value=[ArrayClass(value=np.array([0, 0, -1])),
                                      ArrayClass(value=np.array([0, 0, 1]))])
 
+    #: The interpolation function to sample the field data for the line
+    #: figure.
     interp_func = Instance(RegularGridInterpolator)
 
+    #: The line figure title.
     figure_title = Str()
+
+    #: The line figure x-axis label.
     x_axis_label = Str('Distance Along Line (mm)')
+
+    #: The line figure y-axis label.
     y_axis_label = Str()
 
+    #: Use user-input labels?
     use_custom_label = Bool(False)
 
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
-        Creates the default traits View object for the model
+        Create the default traits View object for the model
 
         Returns
         -------
-        default_traits_view : traitsui.view.View
+        default_traits_view : :py:class:`traitsui.view.View`
             The default traits View object for the model
         """
         return View(
@@ -701,7 +820,7 @@ class LineFigureModel(Editor):
 
         Parameters
         ----------
-        parent
+        parent : toolkit-specific widget
             The parent widget for the Editor
         """
         self.ui = self.edit_traits(kind='subpanel', parent=parent)  # pylint: disable=invalid-name
@@ -778,7 +897,7 @@ class LineFigureModel(Editor):
 
         Parameters
         ----------
-        event
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
             The trait change event for points
         """
         line_pos, line_data = self._fill_data()
@@ -809,25 +928,34 @@ class LineFigureModel(Editor):
             self.create_plot(event)
 
 
+@provides(IEditor)
 class StartPage(Editor):
     """
     A Pyface Tasks Editor to hold the opening page
     """
+    #: The model object to view. If not specified, the editor is used instead.
     model = Instance(HasTraits)
+
+    #: The UI object associated with the Traits view, if it has been
+    #: constructed.
     ui = Instance('traitsui.ui.UI')
 
+    #: The editor's user-visible name.
     name = Str('Start Page')
+
+    #: The task associated with the editor.
     task = Any()
 
+    #: Button to open a new data file.
     open_data_file_button = Button(label='Open Data File', style='button')
 
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
-        Creates the default traits View object for the model
+        Create the default traits View object for the model
 
         Returns
         -------
-        default_traits_view : traitsui.view.View
+        default_traits_view : :py:class:`traitsui.view.View`
             The default traits View object for the model
         """
         return View(
@@ -850,7 +978,7 @@ class StartPage(Editor):
 
         Parameters
         ----------
-        parent
+        parent : toolkit-specific widget
             The parent widget for the Editor
         """
         self.ui = self.edit_traits(kind='subpanel', parent=parent) # pylint: disable=invalid-name
@@ -872,7 +1000,7 @@ class StartPage(Editor):
 
         Parameters
         ----------
-        event
-            TraitsUI button event.
+        event : A :py:class:`traits.observation.events.TraitChangeEvent` instance
+            The trait change event for open_data_file_button
         """
         self.task.open()

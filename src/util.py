@@ -16,7 +16,8 @@ scalar_fields = ['El__Loss_Density', 'EM_Potential', 'SAR']
 
 def find_nearest(array, value):
     """
-    Finds the nearest value to `value` in `array`
+    Finds the nearest value to `value` in `array`.
+
     Parameters
     ----------
     array : array_like
@@ -34,7 +35,8 @@ def find_nearest(array, value):
 
 def arg_find_nearest(array, value):
     """
-    Find the index of the nearest value to `value` in `array`
+    Find the index of the nearest value to `value` in `array`.
+
     Parameters
     ----------
     array : array_like
@@ -43,7 +45,7 @@ def arg_find_nearest(array, value):
     Returns
     -------
     idx : int
-        Index of nearest value to `value` in `array`
+        Index of nearest value to `value` in `array`.
     """
     array = np.asarray(array)
     return (np.abs(array - value)).argmin()
@@ -51,11 +53,24 @@ def arg_find_nearest(array, value):
 
 class ArrayClass(HasStrictTraits):
     """
-    Wrapper class for list of traits Array type objects.
+    Wrapper class for traits Array type objects.
     """
+    #: A :py:class:`traits.trait_numeric.Array` instance
     value = Array(value=np.array([0, 0, 0]), dtype=np.float64)
 
     def __init__(self, *args, **kwargs):
+        """
+
+        Parameters
+        ----------
+        *args : iterable
+        **kwargs : dict
+
+        Other Parameters
+        ----------------
+        value : array_like, optional
+            Default value is [0, 0, 0]
+        """
         super().__init__()
         if 'value' in kwargs:
             self.value = kwargs['value']
@@ -67,12 +82,12 @@ class ArrayClass(HasStrictTraits):
 
     def default_traits_view(self):
         """
-        Creates the default traits View object for the model
+        Create the default traits View object for the model.
 
         Returns
         -------
-        default_traits_view : traitsui.view.View
-            The default traits View object for the model
+        default_traits_view : :py:class:`traitsui.view.View`
+            The default traits View object for the model.
         """
         return View(Item('value', editor=ArrayEditor(width=-60, auto_set=False, enter_set=True),
                          show_label=False))

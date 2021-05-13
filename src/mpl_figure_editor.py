@@ -8,6 +8,7 @@ from pyface.qt import QtGui
 
 from traitsui.qt4.editor import Editor
 from traitsui.qt4.basic_editor_factory import BasicEditorFactory
+from traitsui.api import Editor as UIEditor, BasicEditorFactory as UIBasicEditorFactory
 
 import matplotlib
 
@@ -17,20 +18,21 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
 
-class _MPLFigureEditor(Editor):
+class _MPLFigureEditor(Editor, UIEditor):
+    #: Is the underlying GUI widget scrollable?
     scrollable = True
 
+    #: Show the matplotlib toolbar at top of figure
     toolbar = True
 
     def init(self, parent):
-        """Initialize the editor
-
-        Initialize the editor that will hold the matplotlib figure
+        """
+        Initialize the editor that will hold the matplotlib figure.
 
         Parameters
         ----------
-        parent
-            The parent widget for the editor
+        parent : toolkit-specific widget
+            The parent widget for the editor.
         """
         self.control = self._create_canvas()
         self.set_tooltip()
@@ -40,12 +42,12 @@ class _MPLFigureEditor(Editor):
 
     def _create_canvas(self):
         """
-        Creates the canvas that will hold the matplotlib figure
+        Creates the canvas that will hold the matplotlib figure.
 
         Returns
         -------
         frame : pyface.qt.QtGui.QWidget
-            Widget containing the matplotlib figure
+            Widget containing the matplotlib figure.
         """
         # matplotlib commands to create a canvas
         if self.toolbar:
@@ -64,8 +66,9 @@ class _MPLFigureEditor(Editor):
         return frame
 
 
-class MPLFigureEditor(BasicEditorFactory):
+class MPLFigureEditor(BasicEditorFactory, UIBasicEditorFactory):
     """
     An Editor Factory that creates a TraitsUI editor for a matplotlib figure.
     """
+    #: :py:class:`traitsui.editor.Editor` class.
     klass = _MPLFigureEditor

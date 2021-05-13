@@ -20,8 +20,7 @@ from pyface.tasks.api import (
     SplitEditorAreaPane,
 )
 from pyface.tasks.task_layout import Splitter, Tabbed
-from traits.api import Property, Instance, observe
-from traits.trait_types import Bool
+from traits.api import Property, Instance, observe, Bool
 
 from .s4l_groups import FieldSelectionGroup
 from .s4l_models import EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
@@ -32,51 +31,70 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
     """ A task for visualizing Sim4Life EM fields from scES simulations
     """
 
+    #: The task's identifier.
     id = "s4l.main_task"
+
+    #: The task's user-visible name.
     name = "S4L Visualization"
 
-    # Plane attributes dock pane
+    #: Plane attributes dock pane.
     plane_attributes_pane = Instance(PlaneAttributes)
 
-    # Line attributes dock pane
+    #: Line attributes dock pane.
     line_attributes_pane = Instance(LineAttributes)
 
+    #: The currently active editor.
     active_editor = Property(
             Instance(IEditor), depends_on="editor_area.active_editor"
     )
 
+    #: The editor area in which the editor belongs.
     editor_area = Instance(IEditorAreaPane)
 
+    #: The opening page's editor.
     start_page = Instance(StartPage)
+
+    #: The object containing the field data.
     fields_model = Instance(EMFields)
+
+    #: The 3D view panel.
     mayavi_scene = Instance(Mayavi3DScene)
 
+    #: The slice figure panel.
     slice_figure = Instance(SliceFigureModel)
+
+    #: The line figure panel.
     line_figure = Instance(LineFigureModel)
 
+    #: Has the main window been initialized?
     model_initialized = Bool(False)
 
+    #: Action to run :py:meth:`toggle_full_model`.
     toggle_model_action = TaskAction(name='Full Model',
                                      method='toggle_full_model',
                                      style='toggle',
                                      enabled_name='model_initialized')
 
+    #: Action to run :py:meth:`change_cord_model`.
     new_cord_action = TaskAction(name='New Cord Model',
                                  method='change_cord_model',
                                  enabled_name='model_initialized')
 
+    #: Action to run :py:meth:`toggle_log_scale`.
     toggle_scale_action = TaskAction(name='Log Scale',
                                      method='toggle_log_scale',
                                      style='toggle',
                                      checked=True,
                                      enabled_name='model_initialized')
 
+    #: Action to run :py:meth:`toggle_line_cross_marker`.
     toggle_line_cross_action = TaskAction(name='Line Cross Marker',
                                           method='toggle_line_cross_marker',
                                           style='toggle',
                                           checked=True,
                                           enabled_name='model_initialized')
 
+    #: The task's menu bar.
     menu_bar = SMenuBar(
             SMenu(
                     TaskAction(name="Open...", method="open", accelerator="Ctrl+O"),
@@ -140,7 +158,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         return self.editor_area
 
     def create_dock_panes(self):
-        """ Create the attribute editor panes
+        """
+        Create the attribute editor panes.
         """
 
         self.plane_attributes_pane = PlaneAttributes()
@@ -153,7 +172,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
     # ------------------------------------------------------------------------
 
     def open(self):
-        """ Shows a dialog to open a new data source.
+        """
+        Show a dialog to open a new data source.
         """
         dialog = FileDialog(
                 title='Choose Data File',
@@ -166,7 +186,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
                 self._new_file(dialog.path)
 
     def export_slice(self):
-        """ Exports data for current slice
+        """
+        Export data for current slice.
         """
         dialog = FileDialog(
                 title='Export Slice Plane',
@@ -180,7 +201,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
             self.slice_figure.export_slice(dialog.path)
 
     def export_line(self):
-        """ Exports data for current line
+        """
+        Export data for current line.
         """
         dialog = FileDialog(
                 title='Export Line Data',
@@ -195,13 +217,13 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
 
     def toggle_full_model(self):
         """
-        Toggles between showing the full spinal cord model and showing only below the cut plane.
+        Toggle between showing the full spinal cord model and showing only below the cut plane.
         """
         self.mayavi_scene.show_full_model = not self.mayavi_scene.show_full_model
 
     def toggle_log_scale(self):
         """
-        Toggles between using a logarithmic scale and a linear scale.
+        Toggle between using a logarithmic scale and a linear scale.
         """
         self.mayavi_scene.log_scale = not self.mayavi_scene.log_scale
         self.slice_figure.log_scale = not self.slice_figure.log_scale
@@ -237,8 +259,12 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
 
     def _new_file(self, filename):
         """
-        Changes the data source to the file at the specified path
-        :param filename: path to data source file
+        Change the data source to the file at the specified path
+
+        Parameters
+        ----------
+        filename : :py:class:`os.PathLike`
+            Path to data source file
         """
         self.editor_area.remove_editor(self.start_page)
 

@@ -12,6 +12,12 @@
    user/installation
    user/ui-layout
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Documentation
+
+   dev/api_autodoc
+
 Indices and tables
 ==================
 
