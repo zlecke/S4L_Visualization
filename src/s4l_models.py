@@ -3,6 +3,8 @@ Traits models for the S4L Visualization application.
 """
 # pylint: disable=attribute-defined-outside-init, unused-argument
 import copy
+import os
+from configparser import ConfigParser
 
 import numpy as np
 import pandas as pd
@@ -18,9 +20,10 @@ from scipy.interpolate import RegularGridInterpolator
 from scipy.io import loadmat
 from traits.api import (
     HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
-    DelegatesTo, provides
+    DelegatesTo, provides, Property
 )
-from traitsui.api import View, Item, Group, Spring
+from traitsui.api import View, Item, Group, Spring, ValueEditor
+from traitsui.menu import ModalButtons
 from tvtk.pyface.scene_editor import SceneEditor
 
 from .mpl_figure_editor import MPLFigureEditor
@@ -44,40 +47,43 @@ class EMFields(HasTraits):
 
     # pylint: disable=too-many-instance-attributes
 
-    #: Path to field data file
+    #: Configuration parser.
+    configuration = Instance(ConfigParser)
+
+    #: Path to field data file.
     data_path = File()
 
-    #: Dictionary of data in `data_path`
+    #: Dictionary of data in `data_path`.
     data_dict = Dict()
 
-    #: List of field keys that can be displayed
+    #: List of field keys that can be displayed.
     field_keys = ListStr()
 
-    #: The currently selected field key
+    #: The currently selected field key.
     selected_field_key = Str()
 
-    #: X values of grid in data file
+    #: X values of grid in data file.
     x_vals = Array()
 
-    #: Y values of grid in data file
+    #: Y values of grid in data file.
     y_vals = Array()
 
-    #: Z values of grid in data file
+    #: Z values of grid in data file.
     z_vals = Array()
 
-    #: Raw data of currently selected field from data file
+    #: Raw data of currently selected field from data file.
     data_arr = Array()
 
-    #: X values of regular grid for current field
+    #: X values of regular grid for current field.
     masked_gr_x = Array()
 
-    #: Y values of regular grid for current field
+    #: Y values of regular grid for current field.
     masked_gr_y = Array()
 
-    #: Z values of regular grid for current field
+    #: Z values of regular grid for current field.
     masked_gr_z = Array()
 
-    #: Data on regular grid for current field
+    #: Data on regular grid for current field.
     masked_grid_data = Array()
 
     @observe('data_path')
@@ -102,7 +108,7 @@ class EMFields(HasTraits):
         if self.selected_field_key not in self.field_keys:
             self.selected_field_key = self.field_keys[0]
             for key in self.field_keys:
-                if key.startswith("J"):
+                if key.startswith(self.configuration.get('Plots', 'initial_field', fallback='J')):
                     self.selected_field_key = key
                     break
 
@@ -180,14 +186,17 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     #: The editor's user-visible name.
     name = Str('3D View')
 
+    #: Configuration parser.
+    configuration = Instance(ConfigParser)
+
     #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
 
     #: Normal vector of the cut plane
-    normal = Array(value=np.array([0, 0, 1]))
+    normal = Array()
 
     #: Origin point of the cut plane
-    origin = Array(value=np.array([0, 0, 0]))
+    origin = Array()
 
     #: The :py:class:`mayavi.core.ui.api.MlabSceneModel` instance
     #: containing the 3D plot.
@@ -213,7 +222,7 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     surf = Instance(Surface)
 
     #: The path to the spinal cord model file.
-    csf_model = File(value=default_csf_model)
+    csf_model = File()
 
     #: The mayavi file reader object to read the spinal cord model file.
     csf_model_reader = Any()
@@ -222,13 +231,13 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     csf_surface = Instance(Surface)
 
     #: Show the full spinal cord model?
-    show_full_model = Bool(False)
+    show_full_model = Bool()
 
     #: The 3D surface object for the full spinal cord model.
     full_csf_surface = Instance(Surface)
 
     #: Use a logarithmic scale for the field data?
-    log_scale = Bool(True)
+    log_scale = Bool()
 
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
@@ -465,6 +474,24 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
                      np.nanmax(self.fields_model.masked_grid_data)])
             self.surf.parent.scalar_lut_manager.lut.nan_color = np.array([0, 0, 0, 0])
 
+    def _csf_model_default(self):
+        return self.configuration.get('Model', 'csf_model',
+                                      fallback=os.path.join(os.getcwd(), 'CSF.vtk'))
+
+    def _show_full_model_default(self):
+        return self.configuration.getboolean('Model', 'full_model', fallback=False)
+
+    def _log_scale_default(self):
+        return self.configuration.getboolean('Plots', 'log_scale', fallback=True)
+
+    def _normal_default(self):
+        normal = self.configuration.get('Plots', 'normal', fallback='[0, 0, 1]')
+        return np.fromstring(normal.strip('[]'), sep=',')
+    
+    def _origin_default(self):
+        origin = self.configuration.get('Plots', 'origin', fallback='[0, 0, 0]')
+        return np.fromstring(origin.strip('[]'), sep=',')
+
 
 @provides(IEditor)
 class SliceFigureModel(Editor):
@@ -481,6 +508,9 @@ class SliceFigureModel(Editor):
     #: The editor's user-visible name.
     name = Str("Slice Plane")
 
+    #: Configuration parser.
+    configuration = Instance(ConfigParser)
+
     #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
 
@@ -491,7 +521,7 @@ class SliceFigureModel(Editor):
     figure = Instance(Figure, ())
 
     #: Use a logarithmic scale for the field data?
-    log_scale = Bool(True)
+    log_scale = Bool()
 
     #: Matplotlib colormap.
     mycmap = Any()
@@ -508,7 +538,7 @@ class SliceFigureModel(Editor):
     clb = Any()
 
     #: Draw the line cross marker?
-    draw_cross = Bool(True)
+    draw_cross = Bool()
 
     #: The list of points describing the line for the line figure.
     points = DelegatesTo('mayavi_scene')
@@ -756,6 +786,12 @@ class SliceFigureModel(Editor):
                 self.line_cross[0].set_marker('x')
 
         self.figure.canvas.draw()
+
+    def _log_scale_default(self):
+        return self.configuration.getboolean('Plots', 'log_scale', fallback=True)
+
+    def _draw_cross_default(self):
+        return self.configuration.getboolean('Plots', 'line_cross_marker', fallback=True)
 
 
 @provides(IEditor)

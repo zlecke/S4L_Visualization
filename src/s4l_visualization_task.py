@@ -1,6 +1,8 @@
 """
 A Pyface Task for the S4L Visualization application.
 """
+from configparser import ConfigParser
+
 from pyface.api import (
     FileDialog,
     OK,
@@ -20,11 +22,15 @@ from pyface.tasks.api import (
     SplitEditorAreaPane,
 )
 from pyface.tasks.task_layout import Splitter, Tabbed
-from traits.api import Property, Instance, observe, Bool
+from traits.api import Property, Instance, observe, Bool, Dict
+from traitsui.api import View, Item
 
 from .s4l_groups import FieldSelectionGroup
-from .s4l_models import EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
+from .s4l_models import (
+    EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
+)
 from .s4l_panes import PlaneAttributes, LineAttributes
+from .preferences import PreferenceDialog
 
 
 class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
@@ -36,6 +42,12 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
 
     #: The task's user-visible name.
     name = "S4L Visualization"
+
+    #: Configuration parser.
+    configuration = Instance(ConfigParser)
+
+    #: Temporary dictionary for editing user configuration
+    _to_edit = Dict()
 
     #: Plane attributes dock pane.
     plane_attributes_pane = Instance(PlaneAttributes)
@@ -104,6 +116,7 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
                             id="File.Export",
                             name="&Export",
                     ),
+                    TaskAction(name="Settings", method="edit_configuration"),
                     id="File",
                     name="&File",
             ),
@@ -162,8 +175,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         Create the attribute editor panes.
         """
 
-        self.plane_attributes_pane = PlaneAttributes()
-        self.line_attributes_pane = LineAttributes()
+        self.plane_attributes_pane = PlaneAttributes(configuration=self.configuration)
+        self.line_attributes_pane = LineAttributes(configuration=self.configuration)
 
         return [self.plane_attributes_pane, self.line_attributes_pane]
 
@@ -253,6 +266,11 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         """
         self.mayavi_scene.initialize_camera()
 
+    def edit_configuration(self):
+        preferences = PreferenceDialog(configuration=self.configuration, title="S4L Visualization Preferences")
+        preferences.edit_traits(kind='modal')
+        pass
+
     # ------------------------------------------------------------------------
     # Protected interface.
     # ------------------------------------------------------------------------
@@ -279,10 +297,11 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
                 )
         )
 
-        self.fields_model = EMFields(data_path=filename)
+        self.fields_model = EMFields(configuration=self.configuration, data_path=filename)
         self.plane_attributes_pane.fields_model = self.fields_model
 
-        self.mayavi_scene = Mayavi3DScene(fields_model=self.fields_model)
+        self.mayavi_scene = Mayavi3DScene(fields_model=self.fields_model,
+                                          configuration=self.configuration)
 
         self.mayavi_scene.sync_trait('normal', self.plane_attributes_pane)
         self.mayavi_scene.sync_trait('origin', self.plane_attributes_pane)
@@ -297,7 +316,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         self.activated()
 
         self.slice_figure = SliceFigureModel(fields_model=self.fields_model,
-                                             mayavi_scene=self.mayavi_scene)
+                                             mayavi_scene=self.mayavi_scene,
+                                             configuration=self.configuration)
 
         self.slice_figure.create_plot()
 
@@ -306,7 +326,8 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         self.editor_area.active_tabwidget.setTabsClosable(False)
         self.activated()
 
-        self.line_figure = LineFigureModel(fields_model=self.fields_model)
+        self.line_figure = LineFigureModel(fields_model=self.fields_model,
+                                           configuration=self.configuration)
         self.line_figure.sync_trait('points', self.line_attributes_pane)
 
         self.line_figure.create_plot(None)

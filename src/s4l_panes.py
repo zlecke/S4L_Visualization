@@ -2,6 +2,8 @@
 Dock Panes for the S4L Visualization application.
 """
 # pylint: disable=unused-argument, too-many-instance-attributes
+from configparser import ConfigParser
+
 import numpy as np
 from numpy import ma
 from pyface.tasks.api import TraitsDockPane
@@ -44,10 +46,13 @@ class PlaneAttributes(CustomDockPane):
     # PlaneAttributes interface.
     # ------------------------------------------------------------------------
 
-    #: The :py:class:`EMFields` instance containing the field data/
+    #: Configuration parser.
+    configuration = Instance(ConfigParser)
+
+    #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
 
-    #: Index of plane location along the slicing direction
+    #: Index of plane location along the slicing direction.
     slice_coord_index = Int(0)
 
     #: Index of slicing direction (x=0, y=1, z=2).
@@ -80,10 +85,10 @@ class PlaneAttributes(CustomDockPane):
                       'Arbitrary Plane')
 
     #: Normal vector of plane.
-    normal = Array(value=np.array([0, 0, 1]), dtype=np.float)
+    normal = Array(dtype=np.float)
 
     #: Origin point of plane.
-    origin = Array(value=np.array([0, 0, 0]), dtype=np.float)
+    origin = Array(dtype=np.float)
 
     @observe('plane_type', post_init=True)
     def change_plane_type(self, event):
@@ -210,6 +215,14 @@ class PlaneAttributes(CustomDockPane):
                         )
                 )
         )
+
+    def _normal_default(self):
+        normal = self.configuration.get('Plots', 'normal', fallback='[0, 0, 1]')
+        return np.fromstring(normal.strip('[]'), sep=',')
+
+    def _origin_default(self):
+        origin = self.configuration.get('Plots', 'origin', fallback='[0, 0, 0]')
+        return np.fromstring(origin.strip('[]'), sep=',')
 
 
 class LineAttributes(CustomDockPane):
