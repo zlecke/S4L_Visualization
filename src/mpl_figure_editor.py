@@ -8,7 +8,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
 from traitsui.qt4.editor import Editor
-from traitsui.qt4.basic_editor_factory import BasicEditorFactory
+from traitsui.editor_factory import EditorFactory
 
 
 class _MPLFigureEditor(Editor):
