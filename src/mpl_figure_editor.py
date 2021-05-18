@@ -42,5 +42,5 @@ class _MPLFigureEditor(Editor):
         return frame
 
 
-class MPLFigureEditor(BasicEditorFactory):
+class MPLFigureEditor(EditorFactory):
     klass = _MPLFigureEditor
