@@ -11,7 +11,7 @@ from traits.api import (
     Bool,
     Undefined,
 )
-from traitsui.qt4.basic_editor_factory import BasicEditorFactory
+from traitsui.editor_factory import EditorFactory
 from traitsui.qt4.range_editor import SimpleSliderEditor
 from traitsui.view import View
 
@@ -88,7 +88,7 @@ class _RangeEditor(SimpleSliderEditor):
             self.control.text.setText('{:.2f} mm'.format(self.map_to_values[self.value]))
 
 
-class QRangeEditor(BasicEditorFactory):
+class QRangeEditor(EditorFactory):
     klass = _RangeEditor
 
     low_label_name = Str()
