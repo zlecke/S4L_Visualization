@@ -15,11 +15,10 @@ from traits.api import (
     Bool,
     Undefined,
 )
-from traitsui.qt4.basic_editor_factory import BasicEditorFactory
 from traitsui.qt4.range_editor import SimpleSliderEditor
 from traitsui.view import View
 
-from traitsui.api import BasicEditorFactory as UIBasicEditorFactory, RangeEditor as UIRangeEditor
+from traitsui.api import BasicEditorFactory, RangeEditor as UIRangeEditor
 
 
 class _RangeEditor(SimpleSliderEditor, UIRangeEditor):
@@ -113,7 +112,7 @@ class _RangeEditor(SimpleSliderEditor, UIRangeEditor):
             self.control.text.setText('{:.2f} mm'.format(self.map_to_values[self.value]))
 
 
-class QRangeEditor(BasicEditorFactory ,UIBasicEditorFactory):
+class QRangeEditor(BasicEditorFactory):
     """
     A custom TraitsUI range editor that is a slider that scrubs through a list of
     mapped values. Displays current value as #.## mm.

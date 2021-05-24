@@ -7,8 +7,7 @@ A TraitsUI editor for matplotlib figures.
 from pyface.qt import QtGui
 
 from traitsui.qt4.editor import Editor
-from traitsui.qt4.basic_editor_factory import BasicEditorFactory
-from traitsui.api import Editor as UIEditor, BasicEditorFactory as UIBasicEditorFactory
+from traitsui.api import Editor as UIEditor, BasicEditorFactory
 
 import matplotlib
 
@@ -66,7 +65,7 @@ class _MPLFigureEditor(Editor, UIEditor):
         return frame
 
 
-class MPLFigureEditor(BasicEditorFactory, UIBasicEditorFactory):
+class MPLFigureEditor(BasicEditorFactory):
     """
     An Editor Factory that creates a TraitsUI editor for a matplotlib figure.
     """
