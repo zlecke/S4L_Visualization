@@ -11,7 +11,7 @@ from traits.api import (
     Bool,
     Undefined,
 )
-from traitsui.editor_factory import EditorFactory
+from traitsui.qt4.basic_editor_factory import BasicEditorFactory as EditorFactory
 from traitsui.qt4.range_editor import SimpleSliderEditor
 from traitsui.view import View
 
