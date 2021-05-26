@@ -39,12 +39,13 @@ Documentation
 
 To build the documentation:
 
-#. Install the `Sphinx <https://www.sphinx-doc.org/>`_ and the
-   `Read the Docs Sphinx Theme <https://sphinx-rtd-theme.readthedocs.io/>`_ packages:
+#. Install the `Sphinx <https://www.sphinx-doc.org/>`_,
+`Read the Docs Sphinx Theme <https://sphinx-rtd-theme.readthedocs.io/>`_,
+and `Numpydoc <https://numpydoc.readthedocs.io/>`_ packages:
 
    .. code:: console
 
-      pip install sphinx sphinx-rtd-theme
+      pip install sphinx sphinx-rtd-theme numpydoc
 
 #. Create a new directory $RepoHome$/docs/_build
 
