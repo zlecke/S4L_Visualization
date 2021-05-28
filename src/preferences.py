@@ -4,7 +4,10 @@ User preferences for the S4L Visualization application.
 import os
 
 from traits.api import HasTraits, Instance, Property, Dict, List, Str, observe
-from traitsui.api import View, Item, Group, ListEditor, Handler, TextEditor
+from traitsui.api import (
+    View, Item, Group, ListEditor, Handler, TextEditor, ApplyButton, OKButton,
+    CancelButton, Action
+)
 
 from pyface.api import confirm, YES
 
@@ -41,8 +44,9 @@ class PreferenceSection(HasTraits):
     def default_traits_view(self):
         items = [Item('object.options.{}'.format(option),
                       label=option,
-                      editor=TextEditor(auto_set=False, enter_set=True)) for option in self.options.value.keys()]
-        return View(*items, kind='live')
+                      editor=TextEditor(auto_set=False, enter_set=True)) for option in
+                 self.options.value.keys()]
+        return View(*items, kind='modal')
 
 
 class PreferenceHandler(Handler):
@@ -52,7 +56,8 @@ class PreferenceHandler(Handler):
             same = True
             for item in info.object._to_edit:
                 for option in item.options.value.keys():
-                    if info.object.configuration.get(item.section_name, option) != item.options.value[option]:
+                    if info.object.configuration.get(item.section_name, option) !=\
+                            item.options.value[option]:
                         same = False
             if not same:
                 save = confirm(None, "Do you want to save changes?", default=YES)
@@ -89,13 +94,19 @@ class PreferenceDialog(HasTraits):
                          style='custom',
                          show_label=False),
                     title=self.title,
+                    resizable=True,
                     handler=PreferenceHandler(),
-                    buttons=['Apply', 'OK', 'Cancel'])
+                    buttons=[OKButton, CancelButton])
 
     def __to_edit_default(self):
         d = []
         for section in self.configuration.sections():
-            options = DContainer(value={option: value for option, value in self.configuration.items(section)})
+            if section == '':
+                continue
+            options = DContainer(
+                value={option: value for option, value in self.configuration.items(section)
+                       if (option in self.configuration._sections[section] and section == "Display")
+                       or section != "Display"})
             d.append(PreferenceSection(options=options, section_name=section))
         return d
 

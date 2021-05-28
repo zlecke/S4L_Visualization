@@ -3,11 +3,8 @@ Utility functions and classes for the S4L Visualization application.
 """
 
 import numpy as np
-from traits.has_traits import HasStrictTraits
-from traits.trait_numeric import Array
-from traitsui.editors import ArrayEditor
-from traitsui.item import Item
-from traitsui.view import View
+from traits.api import HasStrictTraits, Array
+from traitsui.api import ArrayEditor, Item, View
 
 
 SCALE_FACTOR = 0.001

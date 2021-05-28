@@ -50,6 +50,9 @@ class EMFields(HasTraits):
     #: Configuration parser.
     configuration = Instance(ConfigParser)
 
+    #: Current participant ID.
+    participant_id = Str()
+
     #: Path to field data file.
     data_path = File()
 
@@ -108,7 +111,7 @@ class EMFields(HasTraits):
         if self.selected_field_key not in self.field_keys:
             self.selected_field_key = self.field_keys[0]
             for key in self.field_keys:
-                if key.startswith(self.configuration.get('Plots', 'initial_field', fallback='J')):
+                if key.lower().startswith(self._get_default_value('initial_field').lower()):
                     self.selected_field_key = key
                     break
 
@@ -170,6 +173,15 @@ class EMFields(HasTraits):
         self.masked_gr_y = masked_gr_y[:, ~masky, :]
         self.masked_gr_z = masked_gr_z[:, ~masky, :]
 
+    def _get_default_value(self, option):
+        if self.participant_id is not None:
+            if self.participant_id not in self.configuration:
+                self.configuration[self.participant_id] = {}
+            val = self.configuration[self.participant_id][option]
+        else:
+            val = self.configuration[self.participant_id][option]
+        return val
+
 
 @provides(IEditor)
 class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
@@ -188,6 +200,9 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
     #: Configuration parser.
     configuration = Instance(ConfigParser)
+
+    #: Current participant ID.
+    participant_id = Str()
 
     #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
@@ -238,6 +253,9 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
 
     #: Use a logarithmic scale for the field data?
     log_scale = Bool()
+
+    #: Current participant ID.
+    participant_id = Str()
 
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
@@ -331,6 +349,9 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
         self.full_csf_surface.visible = event.new
 
         self.scene.mlab.draw()
+
+    def reset_participant_defaults(self):
+        self.reset_traits(traits=['csf_model', 'show_full_model', 'log_scale', 'normal', 'origin'])
 
     @observe('csf_model', post_init=True)
     def change_cord_model(self, event):
@@ -475,22 +496,36 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
             self.surf.parent.scalar_lut_manager.lut.nan_color = np.array([0, 0, 0, 0])
 
     def _csf_model_default(self):
-        return self.configuration.get('Model', 'csf_model',
-                                      fallback=os.path.join(os.getcwd(), 'CSF.vtk'))
+        try:
+            model = self._get_default_value('csf_model')
+        except KeyError:
+            model = os.path.join(os.getcwd(), 'CSF.vtk')
+        return model
 
     def _show_full_model_default(self):
-        return self.configuration.getboolean('Model', 'full_model', fallback=False)
+        full_model = self.configuration.BOOLEAN_STATES[self._get_default_value('full_model').lower()]
+        return full_model
 
     def _log_scale_default(self):
-        return self.configuration.getboolean('Plots', 'log_scale', fallback=True)
+        log_scale = self.configuration.BOOLEAN_STATES[self._get_default_value('log_scale').lower()]
+        return log_scale
 
     def _normal_default(self):
-        normal = self.configuration.get('Plots', 'normal', fallback='[0, 0, 1]')
-        return np.fromstring(normal.strip('[]'), sep=',')
+        normal = self._get_default_value('normal')
+        return np.fromstring(normal.strip('()'), sep=',')
     
     def _origin_default(self):
-        origin = self.configuration.get('Plots', 'origin', fallback='[0, 0, 0]')
-        return np.fromstring(origin.strip('[]'), sep=',')
+        origin = self._get_default_value('origin')
+        return np.fromstring(origin.strip('()'), sep=',')
+
+    def _get_default_value(self, option):
+        if self.participant_id is not None:
+            if self.participant_id not in self.configuration:
+                self.configuration[self.participant_id] = {}
+            val = self.configuration[self.participant_id][option]
+        else:
+            val = self.configuration[self.participant_id][option]
+        return val
 
 
 @provides(IEditor)
@@ -510,6 +545,9 @@ class SliceFigureModel(Editor):
 
     #: Configuration parser.
     configuration = Instance(ConfigParser)
+
+    #: Current participant ID.
+    participant_id = Str()
 
     #: The :py:class:`EMFields` instance containing the field data.
     fields_model = Instance(EMFields)
@@ -788,10 +826,21 @@ class SliceFigureModel(Editor):
         self.figure.canvas.draw()
 
     def _log_scale_default(self):
-        return self.configuration.getboolean('Plots', 'log_scale', fallback=True)
+        log_scale = self.configuration.BOOLEAN_STATES[self._get_default_value('log_scale').lower()]
+        return log_scale
 
     def _draw_cross_default(self):
-        return self.configuration.getboolean('Plots', 'line_cross_marker', fallback=True)
+        line_cross = self.configuration.BOOLEAN_STATES[self._get_default_value('line_cross_marker').lower()]
+        return line_cross
+
+    def _get_default_value(self, option):
+        if self.participant_id is not None:
+            if self.participant_id not in self.configuration:
+                self.configuration[self.participant_id] = {}
+            val = self.configuration[self.participant_id][option]
+        else:
+            val = self.configuration[self.participant_id][option]
+        return val
 
 
 @provides(IEditor)

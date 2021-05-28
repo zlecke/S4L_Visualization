@@ -1,11 +1,13 @@
 """
 A Pyface Task for the S4L Visualization application.
 """
+import re
 from configparser import ConfigParser
 
 from pyface.api import (
     FileDialog,
     OK,
+    GUI
 )
 from pyface.tasks.action.api import (
     DockPaneToggleGroup,
@@ -20,16 +22,16 @@ from pyface.tasks.api import (
     IEditor,
     IEditorAreaPane,
     SplitEditorAreaPane,
+    VSplitter
 )
 from pyface.tasks.task_layout import Splitter, Tabbed
-from traits.api import Property, Instance, observe, Bool, Dict
-from traitsui.api import View, Item
+from traits.api import Property, Instance, observe, Bool, Dict, Str
 
 from .s4l_groups import FieldSelectionGroup
 from .s4l_models import (
     EMFields, Mayavi3DScene, SliceFigureModel, LineFigureModel, StartPage
 )
-from .s4l_panes import PlaneAttributes, LineAttributes
+from .s4l_panes import PlaneAttributes, LineAttributes, ParticipantIDPane
 from .preferences import PreferenceDialog
 
 
@@ -46,6 +48,9 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
     #: Configuration parser.
     configuration = Instance(ConfigParser)
 
+    #: Current participant's ID
+    participant_id = Str()
+
     #: Temporary dictionary for editing user configuration
     _to_edit = Dict()
 
@@ -54,6 +59,9 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
 
     #: Line attributes dock pane.
     line_attributes_pane = Instance(LineAttributes)
+
+    #: Participant ID dock pane.
+    part_id_pane = Instance(ParticipantIDPane)
 
     #: The currently active editor.
     active_editor = Property(
@@ -176,9 +184,15 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         """
 
         self.plane_attributes_pane = PlaneAttributes(configuration=self.configuration)
-        self.line_attributes_pane = LineAttributes(configuration=self.configuration)
+        self.plane_attributes_pane.sync_trait('participant_id', self)
 
-        return [self.plane_attributes_pane, self.line_attributes_pane]
+        self.line_attributes_pane = LineAttributes(configuration=self.configuration)
+        self.line_attributes_pane.sync_trait('participant_id', self)
+
+        self.part_id_pane = ParticipantIDPane()
+        self.part_id_pane.sync_trait('participant_id', self)
+
+        return [self.plane_attributes_pane, self.line_attributes_pane, self.part_id_pane]
 
     # ------------------------------------------------------------------------
     # 'S4L_Visualization_task' interface.
@@ -275,6 +289,11 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
             with open('config.ini', 'w') as out_file:
                 self.configuration.write(out_file)
 
+    def update_participant_id(self):
+        if self.model_initialized:
+            self.line_attributes_pane.set_participant_defaults()
+            self.mayavi_scene.reset_participant_defaults()
+
     # ------------------------------------------------------------------------
     # Protected interface.
     # ------------------------------------------------------------------------
@@ -288,24 +307,40 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         filename : :py:class:`os.PathLike`
             Path to data source file
         """
+        GUI.set_busy(True)
+
+        if m := re.search(r"\D(\d{3})\D", filename):
+            self.participant_id = m.group(1)
+
+        if self.participant_id is not None:
+            if self.participant_id not in self.configuration:
+                self.configuration[self.participant_id] = {}
+            default_points = self.configuration[self.participant_id]['points']
+            self.line_attributes_pane.set_points(default_points)
+            self.part_id_pane.participant_id = self.participant_id
+
         self.editor_area.remove_editor(self.start_page)
 
         self.window.set_layout(
                 TaskLayout(
                         bottom=PaneItem('s4l.plane_attributes'),
-                        left=PaneItem('s4l.line_attributes'),
-                        top_left_corner='left',
-                        top_right_corner='right',
+                        left=VSplitter(PaneItem('s4l.line_attributes'), PaneItem('s4l.participant_id_pane')),
+                        top_left_corner='top',
+                        top_right_corner='top',
                         bottom_left_corner='left',
                         bottom_right_corner='right'
                 )
         )
 
         self.fields_model = EMFields(configuration=self.configuration, data_path=filename)
+        self.fields_model.sync_trait('participant_id', self)
+
         self.plane_attributes_pane.fields_model = self.fields_model
 
         self.mayavi_scene = Mayavi3DScene(fields_model=self.fields_model,
                                           configuration=self.configuration)
+
+        self.mayavi_scene.sync_trait('participant_id', self)
 
         self.mayavi_scene.sync_trait('normal', self.plane_attributes_pane)
         self.mayavi_scene.sync_trait('origin', self.plane_attributes_pane)
@@ -322,6 +357,7 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         self.slice_figure = SliceFigureModel(fields_model=self.fields_model,
                                              mayavi_scene=self.mayavi_scene,
                                              configuration=self.configuration)
+        self.slice_figure.sync_trait('participant_id', self)
 
         self.slice_figure.create_plot()
 
