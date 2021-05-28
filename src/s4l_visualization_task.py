@@ -109,14 +109,14 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
     #: The task's menu bar.
     menu_bar = SMenuBar(
             SMenu(
-                    TaskAction(name="Open...", method="open", accelerator="Ctrl+O"),
+                    TaskAction(name="&Open...", method="open", accelerator="Ctrl+O"),
                     SMenu(
-                            TaskAction(name="Export Slice", method="export_slice"),
-                            TaskAction(name="Export Line", method="export_line"),
+                            TaskAction(name="Export &Slice", method="export_slice"),
+                            TaskAction(name="Export &Line", method="export_line"),
                             id="File.Export",
                             name="&Export",
                     ),
-                    TaskAction(name="Settings", method="edit_configuration"),
+                    TaskAction(name="&Settings", method="edit_configuration"),
                     id="File",
                     name="&File",
             ),
