@@ -21,7 +21,7 @@ from traitsui.view import View
 from traitsui.api import BasicEditorFactory, RangeEditor as UIRangeEditor
 
 
-class _RangeEditor(SimpleSliderEditor, UIRangeEditor):
+class _RangeEditor(SimpleSliderEditor):
 
     #: Label for low end of range.
     low_label = Str()
