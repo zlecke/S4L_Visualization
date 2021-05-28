@@ -326,8 +326,7 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         self.editor_area.active_tabwidget.setTabsClosable(False)
         self.activated()
 
-        self.line_figure = LineFigureModel(fields_model=self.fields_model,
-                                           configuration=self.configuration)
+        self.line_figure = LineFigureModel(fields_model=self.fields_model)
         self.line_figure.sync_trait('points', self.line_attributes_pane)
 
         self.line_figure.create_plot(None)
