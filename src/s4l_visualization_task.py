@@ -267,9 +267,13 @@ class S4LVisualizationTask(Task): # pylint: disable=too-many-instance-attributes
         self.mayavi_scene.initialize_camera()
 
     def edit_configuration(self):
-        preferences = PreferenceDialog(configuration=self.configuration, title="S4L Visualization Preferences")
-        preferences.edit_traits(kind='modal')
-        pass
+        preferences = PreferenceDialog(configuration=self.configuration,
+                                       title="S4L Visualization Preferences")
+        ui = preferences.edit_traits(kind='modal')
+        if ui.result:
+            self.configuration.remove_section('')
+            with open('config.ini', 'w') as out_file:
+                self.configuration.write(out_file)
 
     # ------------------------------------------------------------------------
     # Protected interface.
