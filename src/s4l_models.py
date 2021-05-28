@@ -906,7 +906,9 @@ class LineFigureModel(Editor):
                         self.fields_model.y_vals,
                         self.fields_model.z_vals
                 ),
-                self.fields_model.data_arr
+                np.nan_to_num(self.fields_model.data_arr),
+                bounds_error=False,
+                fill_value=None
         )
         return func
 
