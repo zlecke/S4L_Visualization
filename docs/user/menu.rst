@@ -56,6 +56,17 @@ Export Line
 Allows the user to export the data from the current :ref:`line-figure` to a
 CSV or Excel file.
 
+.. _settings:
+
+Settings
+========
+
+.. image:: /_static/user/settings.png
+
+Allows the user to change default settings both globally, through the DEFAULT tab, and
+by participant, through a tab with that participant's ID. If a participant's ID is not
+present in this dialog, set the current participant's ID in the :ref:`participant-id-pane`.
+
 .. _view-menu:
 
 View Menu

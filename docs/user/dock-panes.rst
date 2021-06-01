@@ -61,3 +61,14 @@ button at the top of the pane to sort the points.
    in the list before using the Sort button.
 
 .. |point-image| image:: /../slvenv/Lib/site-packages/traitsui/qt4/images/list_editor.png
+
+.. _participant-id-pane:
+
+Participant ID Pane
+===================
+
+.. image:: /_static/user/participant-id-pane.png
+
+The participant ID dock pane allows the user to set the current participant ID. This sets
+the default :ref:`settings` for that participant, and allows the user to change the default settings
+for that participant.

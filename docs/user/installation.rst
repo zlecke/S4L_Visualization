@@ -8,12 +8,12 @@ Installation
 
    OR
 
-   Change the ``default_csf_model`` variable in ``preferences.py`` to be the file path of the CSF model vtk file
+   Change the DEFAULT ``csf_model`` variable in your local ``config.ini`` file to be the file path of the CSF model vtk file
 
-   .. literalinclude:: /../src/preferences.py
+   .. literalinclude:: /../config_template.ini
       :linenos:
-      :emphasize-lines: 2
-      :caption: src/preferences.py
+      :emphasize-lines: 19-20
+      :caption: config_template.ini
 
 #. Open a command prompt window and navigate to the repository
 #. Run the following commands to set up the environment:
