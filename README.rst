@@ -40,10 +40,10 @@ Documentation
 To build the documentation:
 
 #. Install the `Sphinx <https://www.sphinx-doc.org/>`_,
-`Read the Docs Sphinx Theme <https://sphinx-rtd-theme.readthedocs.io/>`_,
-and `Numpydoc <https://numpydoc.readthedocs.io/>`_ packages:
+   `Read the Docs Sphinx Theme <https://sphinx-rtd-theme.readthedocs.io/>`_,
+   and `Numpydoc <https://numpydoc.readthedocs.io/>`_ packages:
 
-   .. code:: console
+    .. code:: console
 
       pip install sphinx sphinx-rtd-theme numpydoc
 
