@@ -12,6 +12,7 @@ from pyface.tasks.api import TraitsDockPane
 from pyface.ui.qt4.tasks.dock_pane import INVERSE_AREA_MAP
 from traits.api import Str, Int, Enum, Array, observe, List, Instance, Button
 from traitsui.api import View, Item, Group, EnumEditor, ArrayEditor, ListEditor, InstanceEditor, Spring
+from traitsui.key_bindings import KeyBindings, KeyBinding
 
 from .q_range_editor import QRangeEditor
 from .s4l_models import EMFields
@@ -435,6 +436,15 @@ class ParticipantIDPane(CustomDockPane):
     set_id_button = Button(label='Set ID',
                            style='button')
 
+    #: Key bindings for the pane - 'Enter' = clicking set_id_button
+    key_bindings = KeyBindings(
+            KeyBinding(
+                    binding1='Enter',
+                    description='Set ID',
+                    method_name='set_current_id',
+            ),
+    )
+
     @observe('set_id_button', post_init=True)
     def set_current_id(self, event):
         self.participant_id = self.part_box
@@ -452,7 +462,11 @@ class ParticipantIDPane(CustomDockPane):
                 ),
                 Group(
                         Spring(),
-                        Item('participant_id', show_label=False, style='readonly'),
+                        Item('participant_id',
+                             show_label=False,
+                             style='readonly',
+                             visible_when='participant_id != ""'),
+                        Item(label="N/A", style='readonly', visible_when='participant_id == ""'),
                         Spring(),
                         orientation='horizontal'
                 ),
@@ -463,5 +477,6 @@ class ParticipantIDPane(CustomDockPane):
                              show_label=False,
                              tooltip='Sets the current participant ID and resets values to default'),
                         orientation='horizontal'
-                )
+                ),
+                key_bindings=self.key_bindings
         )
