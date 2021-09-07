@@ -258,9 +258,6 @@ class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     #: Use a logarithmic scale for the field data?
     log_scale = Bool()
 
-    #: Current participant ID.
-    participant_id = Str()
-
     def default_traits_view(self):  # pylint: disable=no-self-use
         """
         Create the default traits View object for the model
