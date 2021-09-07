@@ -87,6 +87,12 @@ class EMFields(HasTraits):
     #: Data on regular grid for current field.
     masked_grid_data = Array()
 
+    def __init__(self, configuration, data_path, **kwargs):
+        self.configuration = configuration
+        self.data_path = data_path
+
+        super().__init__(**kwargs)
+
     @observe('data_path')
     def _update_data_path(self, event):
         self.data_dict = loadmat(event.new)
