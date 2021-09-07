@@ -1,12 +1,9 @@
 """
 User preferences for the S4L Visualization application.
 """
-import os
-
-from traits.api import HasTraits, Instance, Property, Dict, List, Str, observe
+from traits.api import HasTraits, Instance, Dict, List, Str
 from traitsui.api import (
-    View, Item, Group, ListEditor, Handler, TextEditor, ApplyButton, OKButton,
-    CancelButton, Action
+    View, Item, ListEditor, Handler, TextEditor, OKButton, CancelButton
 )
 
 from pyface.api import confirm, YES

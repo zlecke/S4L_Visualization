@@ -20,14 +20,12 @@ from scipy.interpolate import RegularGridInterpolator
 from scipy.io import loadmat
 from traits.api import (
     HasTraits, File, Dict, Str, Bool, List, Any, Instance, observe, Array, ListStr, Button,
-    DelegatesTo, provides, Property
+    DelegatesTo, provides
 )
-from traitsui.api import View, Item, Group, Spring, ValueEditor
-from traitsui.menu import ModalButtons
+from traitsui.api import View, Item, Group, Spring
 from tvtk.pyface.scene_editor import SceneEditor
 
 from .mpl_figure_editor import MPLFigureEditor
-from .preferences import default_csf_model
 from .util import ArrayClass, SCALE_FACTOR, scalar_fields, arg_find_nearest
 
 # pylint: disable=wrong-import-position, wrong-import-order
