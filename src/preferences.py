@@ -10,8 +10,6 @@ from pyface.api import confirm, YES
 
 from configparser import ConfigParser
 
-default_csf_model = os.path.join(os.getcwd(), 'CSF.vtk')
-
 
 class DContainer(HasTraits):
     value = Dict
