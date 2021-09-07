@@ -12,6 +12,9 @@ from configparser import ConfigParser
 
 
 class DContainer(HasTraits):
+    """
+    A :py:class:`traits.has_traits.HasTraits` wrapper class for dict instances.
+    """
     value = Dict
 
     def __getattr__(self, key):

@@ -96,11 +96,8 @@ class _RangeEditor(SimpleSliderEditor):
 
     def update_editor(self):
         """
+        Updates the editor when the object trait changes externally to the editor.
         Overridden to set a custom label for the current value.
-
-        See Also
-        --------
-        :py:function:`traitsui.qt4.range_editor.SimpleSliderEditor.update_editor`
         """
         super().update_editor()
         if self.map_to_values is not None:
@@ -116,6 +113,47 @@ class QRangeEditor(BasicEditorFactory):
     """
     A custom TraitsUI range editor that is a slider that scrubs through a list of
     mapped values. Displays current value as #.## mm.
+
+    Attributes
+    ----------------
+    klass : :py:class:`traitsui.editor.Editor`, default: :py:class:`src.q_range_editor._RangeEditor`
+        The class to use for all editor styles.
+    low_label_name : str
+        The object trait containing the label for the low value in range
+    high_label_name : str
+        The object trait containing the label for the high value in range
+    map_to_values_name : str
+        The object trait containing the map from indices to values
+    cols : int
+        Number of columns when displayed as an enumeration
+    auto_set : bool, default: True
+        Is user input set on every keystroke?
+    enter_set : bool, default: False
+        Is user input set when the Enter key is pressed?
+    low_label : str
+        Label for the low end of the range
+    high_label : str
+        Label for the high end of the range
+    label_width : int
+        The width of the low and high labels
+    low_name : str
+        The name of an [object.]trait that defines the low value for the range
+    high_name : str
+        The name of an [object.]trait that defines the high value for the range
+    format : str
+        Formatting string used to format value and labels
+    is_float : bool
+        Is the range for floating pointer numbers (vs. integers)?
+    evaluate : any
+        Function to evaluate floats/ints when they are assigned to an object trait
+    evaluate_name : str
+        The object trait containing the function used to evaluate floats/ints
+    low : int or float
+        Low end of range
+    high : int or float
+        High end of range
+    mode : {"auto", "slider", "xslider", "spinner", "enum", "text", "logslider"}
+        Display mode to use
     """
 
     # pylint: disable=too-many-instance-attributes, redefined-builtin, too-many-arguments
@@ -124,63 +162,34 @@ class QRangeEditor(BasicEditorFactory):
 
     klass = _RangeEditor
 
-    #: The object trait containing the label for the low value in range
     low_label_name = Str()
-
-    #: The object trait containing the label for the high value in range
     high_label_name = Str()
-
-    #: The object trait containing the map from indices to values
     map_to_values_name = Str()
 
     # -------------------------------------------------------------------------
     #  Trait definitions:
     # -------------------------------------------------------------------------
-
-    #: Number of columns when displayed as an enumeration
     cols = Range(1, 20)
 
-    #: Is user input set on every keystroke?
     auto_set = Bool(True)
-
-    #: Is user input set when the Enter key is pressed?
     enter_set = Bool(False)
 
-    #: Label for the low end of the range
     low_label = Str()
-
-    #: Label for the high end of the range
     high_label = Str()
-
-    #: The width of the low and high labels
     label_width = Int()
 
-    #: The name of an [object.]trait that defines the low value for the range
     low_name = Str()
-
-    #: The name of an [object.]trait that defines the high value for the range
     high_name = Str()
-
-    #: Formatting string used to format value and labels
     format = Str("%s")
 
-    #: Is the range for floating pointer numbers (vs. integers)?
     is_float = Bool(Undefined)
 
-    #: Function to evaluate floats/ints when they are assigned to an object
-    #: trait
     evaluate = Any()
-
-    #: The object trait containing the function used to evaluate floats/ints
     evaluate_name = Str()
 
-    #: Low end of range
     low = Property()
-
-    #: High end of range
     high = Property()
 
-    #: Display mode to use
     mode = Enum(
             "auto", "slider", "xslider", "spinner", "enum", "text", "logslider"
     )
@@ -204,10 +213,6 @@ class QRangeEditor(BasicEditorFactory):
     )
 
     def init(self, handler=None):
-        """ Performs any initialization needed after all constructor traits
-            have been set.
-        """
-
         # pylint: disable=protected-access, eval-used
 
         if handler is not None:
@@ -304,9 +309,9 @@ class QRangeEditor(BasicEditorFactory):
 
         Parameters
         ----------
-        ui : traitsui.ui.UI
+        ui : :py:class:`traitsui.ui.UI`
             TraitsUI UI instance for the editor
-        object : traits.trait_types.Instance(traits.has_traits.HasTraits)
+        object : :py:class:`traits.has_traits.HasTraits`
             The object this editor is editing (e.g. object.link1.link2)
         name : str
             The name of the trait this editor is editing (e.g. 'value')
@@ -330,9 +335,9 @@ class QRangeEditor(BasicEditorFactory):
 
         Parameters
         ----------
-        ui : traitsui.ui.UI
+        ui : :py:class:`traitsui.ui.UI`
             TraitsUI UI instance for the editor
-        object : traits.trait_types.Instance(traits.has_traits.HasTraits)
+        object : :py:class:`traits.has_traits.HasTraits`
             The object this editor is editing (e.g. object.link1.link2)
         name : str
             The name of the trait this editor is editing (e.g. 'value')

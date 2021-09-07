@@ -10,16 +10,19 @@ class SelectFieldAction(Action):
     """
     A Pyface Action for changing and displaying which field is currently being
     visualized by the S4L Visualization application.
+
+    Attributes
+    ----------
+    task : :py:class:`pyface.tasks.Task`
+        The task with which the action is associated. Set by the framework.
+    style : {"radio", "push", "toggle", "widget"}
+        The action's style.
+    checked : bool
+       Is the action checked? This is only relevant if the action style is 'radio' or 'toggle'.
+       Read-only attribute.
     """
-    #: The task with which the action is associated. Set by the framework
     task = Instance(Task)
-
-    #: The action's style.
-    #: Can be one of {"push", "radio", "toggle", "widget"}.
     style = 'radio'
-
-    #: Is the action checked? This is only relevant if the action style is
-    #: 'radio' or 'toggle'
     checked = Property(Bool, observe='task.fields_model.selected_field_key')
 
     def perform(self, event=None):
@@ -47,6 +50,17 @@ class FieldSelectionGroup(Group):
     """
     A Pyface Action Group for selecting which field to display in the
     S4L Visualization application.
+
+    Attributes
+    ----------
+    id : str
+        The group's identifier.
+    items : list
+        The items in the group.
+    task : :py:class:`pyface.tasks.Task`
+        The task associated with the group.
+    field_keys : list of str
+        The fields available to be displayed.
     """
     # pylint: disable=unused-argument, attribute-defined-outside-init
 

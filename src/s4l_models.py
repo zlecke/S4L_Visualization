@@ -40,51 +40,54 @@ from matplotlib.figure import Figure
 
 
 class EMFields(HasTraits):
-    """ A collection of EM fields output from Sim4Life EM simulations
     """
+    A collection of EM fields output from Sim4Life EM simulations.
 
+    Parameters
+    ----------
+    configuration : :py:class:`configparser.ConfigParser`
+        Application settings object.
+    data_path : os.PathLike
+        Path to field data file.
+
+    Attributes
+    ----------
+    participant_id : str
+        Current participant ID.
+    data_dict : dict
+        Dictionary of data in `data_path`.
+    field_keys : list of str
+        List of field keys that can be displayed.
+    selected_field_key : str
+        The currently selected field key.
+    x_vals, y_vals, z_vals : array_like
+        Grid coordinates from data file.
+    data_arr : array_like
+        Raw data values for currently selected field from data file.
+    masked_gr_x, masked_gr_y, masked_gr_z : array_like
+        Data coordinates of regular grid for currently selected field.
+    masked_grid_data : array_like
+        Data values on regular grid for currently selected field
+    """
     # pylint: disable=too-many-instance-attributes
 
-    #: Configuration parser.
     configuration = Instance(ConfigParser)
-
-    #: Current participant ID.
     participant_id = Str()
 
-    #: Path to field data file.
     data_path = File()
-
-    #: Dictionary of data in `data_path`.
     data_dict = Dict()
 
-    #: List of field keys that can be displayed.
     field_keys = ListStr()
-
-    #: The currently selected field key.
     selected_field_key = Str()
 
-    #: X values of grid in data file.
     x_vals = Array()
-
-    #: Y values of grid in data file.
     y_vals = Array()
-
-    #: Z values of grid in data file.
     z_vals = Array()
-
-    #: Raw data of currently selected field from data file.
     data_arr = Array()
 
-    #: X values of regular grid for current field.
     masked_gr_x = Array()
-
-    #: Y values of regular grid for current field.
     masked_gr_y = Array()
-
-    #: Z values of regular grid for current field.
     masked_gr_z = Array()
-
-    #: Data on regular grid for current field.
     masked_grid_data = Array()
 
     def __init__(self, configuration, data_path, **kwargs):
@@ -191,6 +194,44 @@ class EMFields(HasTraits):
 class Mayavi3DScene(Editor):  # pylint: disable=too-many-instance-attributes
     """
     A Pyface Tasks Editor for holding a Mayavi scene
+
+    Parameters
+    ----------
+    configuration : :py:class:`configparser.ConfigParser`
+        Application settings object.
+    fields_model : :py:class:`EMFields`
+        The :py:class:`EMFields` instance containing the field data.
+
+    Attributes
+    ----------
+    model : :py:class:`traits.has_traits.HasTraits`
+        The model object to view. If not specified, the editor is used instead.
+    ui : :py:class:`traitsui.ui.UI`
+        The UI object associated with the Traits view, if it has been constructed.
+    name : str
+        The editor's user-visible name.
+    participant_id : str
+        The current participant's ID.
+    normal : array_like
+        Normal vector of the cut plane.
+    origin : array_like
+        Origin point of the cut plane.
+    scene : :py:class:`mayavi.core.ui.api.MlabSceneModel`
+        The Mayavi scene containing the 3D plot.
+    data_set_clipper : :py:class:`mayavi.filters.data_set_clipper.DataSetClipper`
+
+    points
+    line : :py:class:`mayavi.modules.surface.Surface`
+    src
+    cut : :py:class:`mayavi.filters.cut_plane.CutPlane`
+    surf : :py:class:`mayavi.modules.surface.Surface`
+    csf_model : os.PathLike
+    csf_model_reader :
+    csf_surface : :py:class:`mayavi.modules.surface.Surface`
+    show_full_model : bool, default: False
+    full_csf_surface : :py:class:`mayavi.modules.surface.Surface`
+    log_scale : bool, default: True
+
     """
     #: The model object to view. If not specified, the editor is used instead.
     model = Instance(HasTraits)

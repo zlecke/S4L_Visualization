@@ -18,10 +18,22 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT
 
 
 class _MPLFigureEditor(Editor, UIEditor):
-    #: Is the underlying GUI widget scrollable?
-    scrollable = True
+    """
+    A TraitsUI editor for a matplotlib figure.
 
-    #: Show the matplotlib toolbar at top of figure
+    Parameters
+    ----------
+    parent : toolkit control
+            The parent toolkit object of the editor's toolkit objects.
+
+    Attributes
+    ----------------
+    scrollable : bool, default: True
+        Is the underlying GUI widget scrollable?
+    toolbar : bool, default: True
+        Show the matplotlib toolbar at top of figure?
+    """
+    scrollable = True
     toolbar = True
 
     def init(self, parent):
@@ -45,7 +57,7 @@ class _MPLFigureEditor(Editor, UIEditor):
 
         Returns
         -------
-        frame : pyface.qt.QtGui.QWidget
+        frame : :py:class:`pyface.qt.QtGui.QWidget`
             Widget containing the matplotlib figure.
         """
         # matplotlib commands to create a canvas
@@ -68,6 +80,10 @@ class _MPLFigureEditor(Editor, UIEditor):
 class MPLFigureEditor(BasicEditorFactory):
     """
     An Editor Factory that creates a TraitsUI editor for a matplotlib figure.
+
+    Attributes
+    ----------
+    klass : :py:class:`traitsui.editor.Editor`, default: :py:class:`src.mpl_figure_editor._MPLFigureEditor`
+        The class to use for all editor styles.
     """
-    #: :py:class:`traitsui.editor.Editor` class.
     klass = _MPLFigureEditor

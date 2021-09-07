@@ -32,8 +32,7 @@ release = '1.0.0'
 extensions = ['sphinx_rtd_theme',
               'numpydoc',
               'sphinx.ext.intersphinx',
-              'sphinx.ext.autodoc',
-              'traits.util.trait_documenter']
+              'sphinx.ext.autodoc']
 
 # Intersphinx configuration
 intersphinx_mapping = {'mayavi':     ('https://docs.enthought.com/mayavi/mayavi/', None),
